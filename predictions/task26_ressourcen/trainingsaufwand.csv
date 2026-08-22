@@ -1,7 +1,0 @@
-lauf,hardware,s_pro_epoche,epochen,gpu_stunden,quelle
-Seg-Baseline (Task 13),TITAN RTX,817,50,11.3,TASK13-Bericht
-Seg-WM minimal Headline,A100-80GB,893,50,12.4,Job 123424 (Cluster)
-Det-WM 6-Term (Task 20.2),A100-80GB,1800,50,25.0,Job 124921 (~30 min/Ep)
-Seg-Kopf-Adaptation (Task 23),TITAN RTX,468,8,1.0,TASK23 (~13 min/Ep x 8)
-Det-Kopf-Adaptation v1 (Task 24),TITAN RTX,1500,6,2.5,TASK24 (~2.5h gesamt)
-Det-Kopf-Adaptation v2 (Task 25),TITAN RTX,1300,12,4.3,TASK25 (12 Ep Cosine)

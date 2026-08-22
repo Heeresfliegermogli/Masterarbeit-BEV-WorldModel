@@ -30,10 +30,10 @@
 #
 # USAGE
 #   python -u eval_full_val.py \
-#       --config config_nuscenes_task15.yaml \
+#       --config examples/config_seg_beispiel.yaml \
 #       --phase  cell \
-#       --checkpoint checkpoints/task15/std_sweep/lstd_3.0/phase2/best_miou.pt \
-#       --output predictions/task15_3/fullval/lstd_3.0_fullval.json
+#       --checkpoint checkpoints/seg_basis/phase2/best_miou.pt \
+#       --output predictions/seg_basis/fullval.json
 #
 #   # Sanity-Check gegen den 300er-Trainings-Proxy (seed 42, identisches Subset):
 #   python -u eval_full_val.py --config ... --checkpoint ... \

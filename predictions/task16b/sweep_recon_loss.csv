@@ -1,3 +1,0 @@
-regler,value,best_miou,best_epoch,std_ratio,pred_std,real_std,mse,cossim,best_val_loss,epochs_run,stop_reason,fullval_miou,ckpt_dir
-recon_loss,mse,0.6759,17,0.9089,0.2407,0.2649,0.02865,0.8538,0.052289,18,miou_plateau,,/home/vima/Code_final/checkpoints/task16b/recon_loss_sweep/recon_loss_mse
-recon_loss,smooth_l1,0.6735,17,0.9266,0.2454,0.2649,0.02947,0.8513,0.043932,18,miou_plateau,,/home/vima/Code_final/checkpoints/task16b/recon_loss_sweep/recon_loss_smooth_l1

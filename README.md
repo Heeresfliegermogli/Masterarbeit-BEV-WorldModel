@@ -34,22 +34,16 @@ Detektion). Masterarbeit an der Universität der Bundeswehr München.
 ## Repository-Struktur
 
 ```
+├── Masterarbeit_VincentMann.pdf   # die vollständige Masterarbeit
 ├── train_linux.py            # Training (eine Codebasis lokal + Cluster)
 ├── inference.py              # Proxy-Evaluation (Teilstichprobe mit 300
 │                             #   Fenstern; mIoU, Streuungsverhältnis)
 ├── eval_full_val.py          # Vollvalidierung (5743 Fenster)
 ├── rollout_eval.py           # autoregressiver Rollout k=1..4
-├── config*.yaml              # aktive Basis-/Eval-Configs
 ├── Code/                     # Modell-Module (Dataset, Embedding, Transformer,
 │                             #   Output-/Upsampling-Head, Flow-Head, Loss)
-├── scripts_render/           # ALLE Thesis-Figuren (thesis_style.py = Stylesheet;
-│                             #   Aufruf aus dem Repo-Root: python3 scripts_render/<x>.py)
-├── predictions/              # kleine Ergebnis-JSONs/CSVs (Datengrundlage der Figuren;
-│                             #   grosse Dumps sind nicht im Repo)
-├── visualizations/           # gerenderte Figuren (PDF/PNG)
-├── berichte/                 # Task-Abschlussberichte = Labor-Journal (deutsch)
-├── archiv/                   # historische Configs, SLURM-Skripte, Einmal-Tools
-└── checkpoints/              # (nicht im Repo — Gewichte, siehe unten)
+└── examples/                 # Beispiel-Config (Training Segmentierung) und
+                              #   Beispiel-Render-Skript (Abb. 5.8 der Thesis)
 ```
 
 ## Setup
@@ -79,30 +73,28 @@ BEVFusion-Gewichte** und keine trainierten Checkpoints. Zum Reproduzieren:
    (Seg: 256×128×128, Det: 256×180×180, fp16).
 4. **Packen:** `python -u Code/pack_latents.py --config <config> --split val
    --dtype float16` (idempotent; memmap-fähige Packs für den Loader).
-5. **Trainieren:** `python -u train_linux.py --config config.yaml`
-   (Cluster-Sweeps: `archiv/sbatch/`, Werte in der Datei setzen, plain
-   `sbatch` ohne CLI-`--export`).
+5. **Trainieren:** `python -u train_linux.py --config examples/config_seg_beispiel.yaml`
+   (Pfade in der Config an die eigene Umgebung anpassen).
 6. **Evaluieren:** `inference.py` (Proxy-Skala, 300 Fenster),
    `eval_full_val.py` (Vollvalidierung), `rollout_eval.py` (k=1..4).
    Die annotationsverankerten Metriken (mIoU/mAP gegen die
    nuScenes-Annotation) laufen per Latent-Injektion im
-   BEVFusion-Container (`LOAD_BEV_LATENTS`-Hook, siehe `berichte/TASK20/21`).
+   BEVFusion-Container (`LOAD_BEV_LATENTS`-Hook).
 
-## Figuren reproduzieren
+## Beispiel: Thesis-Figur rendern
 
-Alle Thesis-Abbildungen entstehen aus den eingecheckten Ergebnis-JSONs/CSVs:
+`examples/` zeigt den Aufbau der Thesis-Figuren (gemeinsames Stylesheet
+`thesis_style.py`, kleine Ergebnis-JSONs als Datenquelle) am Beispiel
+von Abbildung 5.8 (mIoU je Klasse):
 
 ```bash
-python3 scripts_render/render_seg_levers.py    # Beispiel: Übersicht der Modellvarianten
-bash scripts_render/optimize_pdfs.sh           # PDF-Font-Subsetting
+python3 examples/render_beispiel_klassen.py
 ```
 
 ## Dokumentation
 
-`berichte/TASK*_ABSCHLUSSBERICHT.md` dokumentieren jeden Arbeitsschritt
-(Methodik, Jobs, Befunde, Lektionen) chronologisch — inklusive der
-Negativergebnisse (Ego-Konditionierung, Selten-Klassen-Gewichtung,
-Task-Loss-Kopplung), die die 0.69-Plateau-Analyse tragen.
+Methodik, Experimente und Ergebnisse sind vollständig in der Thesis
+dokumentiert: [`Masterarbeit_VincentMann.pdf`](Masterarbeit_VincentMann.pdf).
 
 ## Lizenz
 

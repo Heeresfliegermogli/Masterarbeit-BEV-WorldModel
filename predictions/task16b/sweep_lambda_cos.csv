@@ -1,4 +1,0 @@
-regler,value,best_miou,best_epoch,std_ratio,pred_std,real_std,mse,cossim,best_val_loss,epochs_run,stop_reason,fullval_miou,ckpt_dir
-lambda_cos,0,0.6732,20,0.9182,0.2432,0.2649,0.03071,0.8444,0.037488,21,miou_plateau,,/home/vima/Code_final/checkpoints/task16b/lambda_cos_sweep/lambda_cos_0
-lambda_cos,0.1,0.6736,14,0.9075,0.2403,0.2649,0.02905,0.8516,0.05243,18,miou_plateau,,/home/vima/Code_final/checkpoints/task16b/lambda_cos_sweep/lambda_cos_0.1
-lambda_cos,0.5,0.6842,17,0.8888,0.2354,0.2649,0.02825,0.8552,0.109375,21,miou_plateau,,/home/vima/Code_final/checkpoints/task16b/lambda_cos_sweep/lambda_cos_0.5

@@ -18,7 +18,7 @@
 # USAGE (PLAIN sbatch, kein --export):
 #   python -u rollout_eval.py --config <headline-cfg> \
 #       --checkpoint <best_miou.pt> --phase cell --k 4 \
-#       --output predictions/task16c/rollout_<label>.json
+#       --output predictions/seg_basis/rollout_<label>.json
 #   # Smoke: --max_windows 5
 # =============================================================================
 import argparse

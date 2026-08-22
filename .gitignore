@@ -3,13 +3,17 @@ checkpoints/
 logs/
 wandb/
 
-# predictions/: Dumps/Latents raus, kleine Ergebnis-JSONs/CSVs REIN
-# (Datengrundlage aller scripts_render/-Figuren, ~33 MB)
-predictions/**
-!predictions/**/
-!predictions/**/*.json
-!predictions/**/*.csv
-predictions/task16a_1b_profile/trace.json
+# --- nur lokal, nicht im veroeffentlichten Repo ------------------------------
+# (Labor-Journal, Einzelfiguren, historische Skripte/Configs bleiben lokal;
+#  das Repo enthaelt Codebasis, Thesis-PDF und examples/)
+predictions/
+berichte/
+visualizations/
+archiv/
+scripts_render/
+/config*.yaml
+/CLAUDE.md
+/Arbeitsplan.py
 
 # nuScenes-Latents / BEVFusion-Gewichte duerfen nicht redistribuiert werden
 *.pt
@@ -32,3 +36,4 @@ __pycache__/
 .claude/
 *.tmp
 *.swp
+/configs/
