@@ -1,0 +1,18 @@
+{
+  "checkpoint": "checkpoints/task16d/ego_state/phase2/best_miou.pt",
+  "config": "config_ego_state_eval.yaml",
+  "phase": "cell",
+  "n_samples": 5743,
+  "full_val": true,
+  "mIoU": 0.6094,
+  "per_class": {
+    "drivable_area": 0.8508,
+    "ped_crossing": 0.5259,
+    "walkway": 0.6462,
+    "stop_line": 0.4375,
+    "carpark_area": 0.6003,
+    "divider": 0.5628
+  },
+  "eval_time_sec": 241.1,
+  "timestamp": "2026-07-21 10:37:34"
+}

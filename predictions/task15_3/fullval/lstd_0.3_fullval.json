@@ -1,0 +1,18 @@
+{
+  "checkpoint": "checkpoints/task15/std_sweep/lstd_0.3/phase2/best_miou.pt",
+  "config": "config_nuscenes_task15.yaml",
+  "phase": "cell",
+  "n_samples": 5743,
+  "full_val": true,
+  "mIoU": 0.6864,
+  "per_class": {
+    "drivable_area": 0.8952,
+    "ped_crossing": 0.616,
+    "walkway": 0.727,
+    "stop_line": 0.5372,
+    "carpark_area": 0.6819,
+    "divider": 0.6348
+  },
+  "eval_time_sec": 490.5,
+  "timestamp": "2026-07-08 23:16:03"
+}

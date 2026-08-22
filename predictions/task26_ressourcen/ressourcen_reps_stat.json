@@ -1,0 +1,27 @@
+{
+  "seg_wm_minimal": {
+    "mean_of_means_ms": 4.5,
+    "spread_ms": 0.19,
+    "n_series": 3
+  },
+  "seg_wm_8layer": {
+    "mean_of_means_ms": 7.34,
+    "spread_ms": 0.36,
+    "n_series": 3
+  },
+  "det_wm_6term": {
+    "mean_of_means_ms": 11.77,
+    "spread_ms": 0.47,
+    "n_series": 3
+  },
+  "flow_head": {
+    "mean_of_means_ms": 4.56,
+    "spread_ms": 0.12,
+    "n_series": 3
+  },
+  "cvae_head": {
+    "mean_of_means_ms": 4.65,
+    "spread_ms": 0.09,
+    "n_series": 3
+  }
+}

@@ -1,0 +1,37 @@
+{
+  "checkpoint": "checkpoints/task18/flow/phase2/best_miou.pt",
+  "config": "config_flow_eval.yaml",
+  "mode": "sample",
+  "flow_steps": 1,
+  "K": 4,
+  "n_windows": 1000,
+  "n_input": 3,
+  "curve": {
+    "1": {
+      "mIoU": 0.6496,
+      "std_ratio": 1.5806,
+      "mIoU_pers": 0.5207,
+      "n_windows": 1000
+    },
+    "2": {
+      "mIoU": 0.5498,
+      "std_ratio": 1.7599,
+      "mIoU_pers": 0.4118,
+      "n_windows": 1000
+    },
+    "3": {
+      "mIoU": 0.4773,
+      "std_ratio": 1.8461,
+      "mIoU_pers": 0.3652,
+      "n_windows": 1000
+    },
+    "4": {
+      "mIoU": 0.4202,
+      "std_ratio": 1.9014,
+      "mIoU_pers": 0.3333,
+      "n_windows": 1000
+    }
+  },
+  "eval_time_sec": 286.7,
+  "timestamp": "2026-07-24 19:38:24"
+}

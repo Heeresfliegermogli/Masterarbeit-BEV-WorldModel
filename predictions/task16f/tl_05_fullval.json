@@ -1,0 +1,18 @@
+{
+  "checkpoint": "checkpoints/task16f/tl_05/phase2/best_miou.pt",
+  "config": "config_taskloss_05.yaml",
+  "phase": "cell",
+  "n_samples": 5743,
+  "full_val": true,
+  "mIoU": 0.6717,
+  "per_class": {
+    "drivable_area": 0.8908,
+    "ped_crossing": 0.6149,
+    "walkway": 0.7169,
+    "stop_line": 0.5102,
+    "carpark_area": 0.6739,
+    "divider": 0.6059
+  },
+  "eval_time_sec": 288.9,
+  "timestamp": "2026-07-23 07:57:02"
+}

@@ -1,0 +1,96 @@
+# =============================================================================
+# BEV World Model — Konfiguration (Linux / TITAN RTX Server)
+# =============================================================================
+#
+# Training:   python train_linux.py --config config_nuscenes_val.yaml --phase cell
+# Inference:  python inference.py   --config config_nuscenes_val.yaml --phase cell
+# Smoke-Test: python inference.py   --config config_nuscenes_val.yaml --phase cell --max_samples 5
+# =============================================================================
+
+
+# -----------------------------------------------------------------------------
+# Modell-Architektur
+# -----------------------------------------------------------------------------
+model:
+  d_model:    256
+  n_frames:   3
+  grid_size:  32
+  n_heads:    8
+  d_ff:       1024
+  n_layers:   4
+  dropout:    0.1
+  phase:      "cell"    # wird durch --phase überschrieben
+
+
+# -----------------------------------------------------------------------------
+# Training
+# -----------------------------------------------------------------------------
+training:
+  epochs:         50
+  batch_size:     4       # Phase 2 Cell-Level: 4 (TITAN RTX 24GB)
+  lr:             1.0e-4
+  weight_decay:   1.0e-4
+  patience:       10
+  seed:           42
+  num_workers:    4       # Linux: 4 Worker
+  use_cosine:     true
+  lambda_cos:     0.1
+  lambda_dist:    0.1
+  log_every:      5
+
+
+# -----------------------------------------------------------------------------
+# Daten (Training — nuScenes Val-Set Full, Linux Pfade)
+# ~6000 Latents, 150 Szenen, intern 70/15/15 aufgeteilt
+# -----------------------------------------------------------------------------
+data:
+  mode: "split"
+  sources:
+    - pkl_path:   "/home/vima/Desktop/Masterarbeit/Nuscenes/nuscenes_infos_val.pkl"
+      latent_dir: "/home/vima/Desktop/Masterarbeit/Nuscenes/latents"
+  h5_path: "/home/vima/Desktop/Masterarbeit/Nuscenes/bev_latents_val.h5"
+  train_ratio: 0.70
+  val_ratio:   0.15
+  # test_ratio = 0.15 (automatisch)
+
+
+# -----------------------------------------------------------------------------
+# Checkpoints
+# -----------------------------------------------------------------------------
+checkpoints:
+  dir:        "/home/vima/Desktop/Masterarbeit/Code_final/checkpoints"
+  save_every: 10
+
+
+# -----------------------------------------------------------------------------
+# Inference (Task 6)
+# Alle Latents aus pkl_path/latent_dir werden genutzt — kein Split.
+#
+# Für Smoke-Test: max_samples: 5
+# Für vollen Run: max_samples: null
+# -----------------------------------------------------------------------------
+inference:
+  # Welche Latents für Inference?
+  pkl_path:   "/home/vima/Desktop/Masterarbeit/Nuscenes/nuscenes_infos_val.pkl"
+  latent_dir: "/home/vima/Desktop/Masterarbeit/Nuscenes/latents"
+
+  # Checkpoints pro Phase
+  checkpoint_phase1: "/home/vima/Desktop/Masterarbeit/Code_final/checkpoints/phase1/best_val_loss.pt"
+  checkpoint_phase2: "/home/vima/Desktop/Masterarbeit/Code_final/checkpoints/phase2/best_val_loss.pt"
+
+  # Output: pred_<token>.npy, real_<token>.npy, inference_log.json
+  output_dir_phase1: "/home/vima/Desktop/Masterarbeit/Code_final/predictions/phase1"
+  output_dir_phase2: "/home/vima/Desktop/Masterarbeit/Code_final/predictions/phase2"
+
+  batch_size:    1
+  device:        "auto"
+  rollout_steps: 0
+  max_samples:   null
+
+
+# -----------------------------------------------------------------------------
+# Weights & Biases
+# -----------------------------------------------------------------------------
+wandb:
+  project: "bev_worldmodel"
+  entity:  null

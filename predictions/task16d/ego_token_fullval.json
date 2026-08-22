@@ -1,0 +1,18 @@
+{
+  "checkpoint": "checkpoints/task16d/ego_token/phase2/best_miou.pt",
+  "config": "config_ego_token.yaml",
+  "phase": "cell",
+  "n_samples": 5743,
+  "full_val": true,
+  "mIoU": 0.6164,
+  "per_class": {
+    "drivable_area": 0.8556,
+    "ped_crossing": 0.5369,
+    "walkway": 0.6517,
+    "stop_line": 0.4465,
+    "carpark_area": 0.6075,
+    "divider": 0.5704
+  },
+  "eval_time_sec": 230.6,
+  "timestamp": "2026-07-21 14:55:48"
+}

@@ -1,0 +1,21 @@
+gruppe,variante,miou_fullval,n,delta_vs_off,verdikt,params,kommentar
+Baseline,Persistenz naiv (F3 kopieren),0.5326,5467,,--,0,16c/16d-Vorstufe
+Baseline,Persistenz ego-gewarpt,0.6286,5467,,--,0,16d-Vorstufe
+Headline,6-Term-Baseline (mse+5 Regler),0.692,5743,-0.0026,n.s.,6.05M,16b.9
+Headline,SmoothL1-Minimal (smooth_l1+std) = OFF,0.6946,5743,0.0,n.s.,6.05M,16b.9 SIEGER
+16d Ego,Ego gate (Bias auf Gate-Logits),0.691,5743,-0.0036,n.s.,6.06-6.19M,
+16d Ego,Ego FiLM action,0.6175,5743,-0.0771,schlechter (sig.),6.06-6.19M,
+16d Ego,Ego-Token,0.6164,5743,-0.0782,schlechter (sig.),6.06-6.19M,
+16d Ego,Ego FiLM state,0.6094,5743,-0.0852,schlechter (sig.),6.06-6.19M,
+16e Kontext/EMA,4 Input-Frames,0.6915,5651,-0.0031,n.s.,6.05M,
+16e Kontext/EMA,EMA (Shadow-Weights),0.6945,5743,-0.0001,n.s.,6.05M,
+16e Kontext/EMA,EMA-Lauf raw (Konsistenz-Check),0.6952,5743,0.0006,n.s.,6.05M,
+16f Hebel,Decoder-Task-Loss 0.1 (Finetune),0.6788,5743,-0.0158,schlechter (sig.),6.05M,
+16f Hebel,Decoder-Task-Loss 0.5,0.6717,5743,-0.0229,schlechter (sig.),6.05M,
+16f Hebel,Decoder-Task-Loss 1.0,0.6688,5743,-0.0258,schlechter (sig.),6.05M,
+16f Hebel,Kapazitaet: 8 Layer,0.6927,5743,-0.0019,n.s.,9.21M,
+16f Hebel,Hartes Residual statt Gate,0.6936,5743,-0.001,n.s.,6.05M,
+18 Generativ,CVAE beta=0.001 (z=mean),0.6875,5743,-0.0071,n.s.,6.42M,Guard
+18 Generativ,CVAE beta=0.01 (z=mean),0.6883,5743,-0.0063,n.s.,6.42M,Guard
+18 Generativ,CVAE beta=0.1 (z=mean),0.6878,5743,-0.0068,n.s.,6.42M,Guard
+18 Generativ,Flow Matching (mean = frozen Backbone),0.6946,5743,0.0,n.s.,6.05M+6.52M,per Konstruktion

@@ -1,0 +1,173 @@
+# =============================================================================
+# BEV World Model — SWEEP-BASIS CLUSTER (Task 16b.1, float16 + /dev/shm)
+# =============================================================================
+# Kreuzung aus ZWEI bestehenden Configs:
+#   - config_sweep_base_fp16.yaml (16a, lokal): der 6-TERM-Loss-Block
+#     (15.1-Schema), damit die Per-Lambda-Configs per patch_line ableitbar sind
+#     und lambda_grad ueberhaupt gesetzt werden KANN.
+#   - config_nuscenes_full_cluster_fp16.yaml (15.3B): BeeGFS-Pfade,
+#     use_packed + stage_to_shm, mIoU-Plateau-Stopping, decode_every=3.
+#
+# ACHTUNG (der eigentliche Grund fuer diese Datei): ALLE bisherigen Cluster-
+# Configs tragen das ALTE 3-Term-Schema (lambda_cos/lambda_dist/lambda_ssim).
+# train_linux.py liest die Lambdas per train_cfg.get(key, default) -- ein
+# fehlender Key faellt STILL auf den Default (lambda_std -> 0.1 statt 1.0).
+# Deshalb muss hier der volle 6-Term-Block stehen, sonst ist der Sweep falsch
+# geankert.
+#
+# DREI Cluster-Aenderungen gegenueber dem 15.3B-Cluster-Anker (Loader-Diagnose
+# Job 122811/122812, NOTIZ_16B_LOADER_DIAGNOSE.md):
+#   1. shm_cleanup: job_shared  (statt job_local) -- N Sweep-Prozesse EINES
+#      Jobs teilen EINE /dev/shm-Kopie (memmap read-only, geteilte tmpfs-Seiten;
+#      cleanup() ist fuer job_shared No-Op -> sbatch-trap raeumt am JOB-Ende).
+#   2. num_workers: 16          (statt 8) -- Diagnose: -31 s/Epoche (~663 s).
+#   3. pin_memory NICHT gesetzt (Default true) -- Diagnose falsifizierte
+#      pin_memory=false (+93 s/Epoche durch synchronen pageable-h2d).
+#
+# VERWENDUNG (nicht direkt starten): aus dieser Basis entstehen die Per-Lambda-
+#   Configs per patch_line (mk_lambda_cfg-Muster) -- gepatcht werden GENAU zwei
+#   Zeilen: der Sweep-Regler (z.B. lambda_grad) + checkpoints.dir. Rest byte-
+#   identisch, Kontrolle via `diff`. Danach 1 Sweep = 1 Mehr-GPU-Job
+#   (sbatch_sweep_parallel.sh, Task 16b.2).
+#
+# ENV vor dem Lauf (Cluster): export WANDB_MODE=offline  (| tee unterdrueckt
+#   sonst den wandb-Login-Prompt, ZWISCHENBERICHT_CLUSTER_INFRASTRUKTUR.md §5).
+# =============================================================================
+
+
+# -----------------------------------------------------------------------------
+# Modell-Architektur (eingefroren -- Confounder-Regel Task 15)
+# -----------------------------------------------------------------------------
+model:
+  d_model:    256
+  n_frames:   3
+  grid_size:  32
+  n_heads:    8
+  d_ff:       1024
+  n_layers:   4
+  dropout:    0.1
+  phase:      "cell"    # wird durch --phase ueberschrieben
+
+
+# -----------------------------------------------------------------------------
+# Training — 6-Term-Loss (15.1). lambda_std FIX auf 15.3-Arbeitspunkt; genau
+# EIN anderer Term ist je Sweep die unabhaengige Variable (per patch_line).
+# -----------------------------------------------------------------------------
+training:
+  epochs:         50
+  batch_size:     8        # wie fp32-Anker (nicht die 32 aus der Timing-Diagnose)
+                            # -- haelt mIoU mit der 15.x-Historie vergleichbar
+  lr:             1.0e-4
+  weight_decay:   1.0e-4
+  patience:       10
+  # --- mIoU-Plateau-Early-Stopping (15.3B.2) -- der Zeit-Hebel, der die Sweeps
+  # bezahlbar macht: jeder Lauf killt sich am mIoU-Plateau statt 50 Ep. zu fahren.
+  miou_early_stop: false   # 16b.9 HEADLINE: bis Konvergenz (nur Val-Loss-Patience)
+  miou_patience:   3        # dreimal in Folge kein signifikanter Fortschritt
+  miou_min_delta:  0.014    # 15.2-Rauschboden
+  seed:           42
+  num_workers:    16       # 16b Loader-Diagnose (Job 122811): -31 s/Epoche ggue. 8.
+                            # + --cpus-per-task im sbatch entsprechend (16b.2).
+                            # pin_memory bewusst NICHT gesetzt (Default true;
+                            # false kostete +93 s/Epoche).
+  prefetch_factor: 4
+  use_cosine:     true
+  log_every:      5
+  # --- 6 explizite Loss-Terme (15.1) ---------------------------------------
+  # lambda_std FIX (15.3-Arbeitspunkt). Uebrige 5 = Baseline (Task 14).
+  # patch_line dreht pro Sweep GENAU EINEN Regler (+ checkpoints.dir).
+  lambda_mse:     1.0     # 16b.9 MINIMAL: TERM-1-Gewicht (jetzt SmoothL1)
+  lambda_cos:     0.0     # MINIMAL: additive Regler AUS
+  lambda_mean:    0.0     # MINIMAL: AUS
+  lambda_std:     1.0     # tragend (15.3-Arbeitspunkt)
+  lambda_grad:    0.0
+  lambda_ssim:    0.0     # MINIMAL: AUS
+  # 16b.9 MINIMAL-Konfig: mse+std tragend, Rest 0; TERM-1-Distanz = SmoothL1
+  # (16b.7: gleiche mIoU, signifikant besserer std-Gap als MSE).
+  recon_loss:     smooth_l1
+
+
+# -----------------------------------------------------------------------------
+# Daten (voller nuScenes trainval, offizieller Split) — fp16-Memmap-Packs
+# auf BeeGFS, node-lokales /dev/shm-Staging.
+# Train: 28.130 Latents | Val: 6.019 Latents (von Thorsten auf BeeGFS bereitet)
+# -----------------------------------------------------------------------------
+data:
+  mode: "explicit"
+
+  train_sources:
+    - pkl_path:   "/home/vima/pkl/nuscenes_infos_train.pkl"
+      latent_dir: "/mnt/beegfs/ssd/lrt81-students/lrt81-vima/latents/seg/train"
+
+  val_sources:
+    - pkl_path:   "/home/vima/pkl/nuscenes_infos_val.pkl"
+      latent_dir: "/mnt/beegfs/ssd/lrt81-students/lrt81-vima/latents/seg/val"
+
+  # Memmap-Pack (15.3B.1) + float16 (15.3B.2). EIN Schalter; idempotentes
+  # Packen beim ersten Lauf, danach Skip. Alle Sweep-Werte lesen dieselben Packs.
+  use_packed:   true
+  packed_dtype: float16     # halbe /dev/shm-Groesse (268 statt 535 GB)
+
+  # --- Node-lokales /dev/shm-Staging (15.3B.3) ---
+  # true -> gepackte Dateien beim Job-Start nach /dev/shm; *_packed_dir-Keys
+  # zeigen zur Laufzeit dorthin (RAM statt BeeGFS-Netzwerk). Erfordert use_packed.
+  stage_to_shm: true
+  # job_shared (16b): mehrere Prozesse EINES Jobs (gleiche SLURM_JOB_ID) teilen
+  # dasselbe /dev/shm-Verzeichnis; memmap read-only -> EINE RAM-Kopie fuer alle
+  # (5x separat passte nicht in /dev/shm). KEIN Prozess-Ende-Cleanup ->
+  # sbatch-trap raeumt am Job-Ende. Pre-Staging laeuft im sbatch EINMAL
+  # sequenziell vor dem Parallel-Start (Skip-Check nicht race-sicher), die
+  # Prozesse treffen dann den Skip-Copy.
+  shm_cleanup:  job_shared
+
+  # ACHTUNG Pfad-Konvention: Cluster-Packs liegen OHNE seg/-Zwischenebene
+  # (latents_packed_fp16/train), anders als lokal (.../seg/train).
+  train_packed_dir: "/mnt/beegfs/ssd/lrt81-students/lrt81-vima/latents_packed_fp16/train"
+  val_packed_dir:   "/mnt/beegfs/ssd/lrt81-students/lrt81-vima/latents_packed_fp16/val"
+
+  # HDF5 bewusst NICHT konfiguriert (auf BeeGFS mit Netzwerk-Overhead noch
+  # langsamer als .npy).
+
+
+# -----------------------------------------------------------------------------
+# Decode-Validierung (Ebene 1) — steuert best_miou.pt (mIoU-Proxy, 300 Subset)
+# -----------------------------------------------------------------------------
+decode_validation:
+  enabled:        true
+  seg_checkpoint: "/home/vima/bevfusion-seg.pth"
+  decode_every:   3        # hoehere zeitliche Aufloesung fuers Plateau-Stopping
+  n_subset:       300      # fixe Val-Samples fuer mIoU-Messung
+
+
+# -----------------------------------------------------------------------------
+# Checkpoints — Platzhalter. patch_line ueberschreibt dir pro Sweep-Wert auf
+# ein isoliertes Verzeichnis (.../task16b/<regler>_<wert>). Muss GENAU EINMAL
+# als '  dir:' vorkommen (patch_line-Match-Garantie).
+# -----------------------------------------------------------------------------
+checkpoints:
+  dir:        "/home/vima/Code_final/checkpoints/task16b/headline/smoothl1_minimal"
+  save_every: 10
+
+
+# -----------------------------------------------------------------------------
+# Inference — Auswerte-Kette (16b.3) ruft inference.py mit CLI-Overrides
+# (--checkpoint best_miou.pt, --output <pred_dir>, --max_samples 300, --no-save)
+# auf. Werte hier nur Platzhalter/Fallback.
+# -----------------------------------------------------------------------------
+inference:
+  pkl_path:   "/home/vima/pkl/nuscenes_infos_val.pkl"
+  latent_dir: "/mnt/beegfs/ssd/lrt81-students/lrt81-vima/latents/seg/val"
+  checkpoint_phase2: "/home/vima/Code_final/checkpoints/task16b/_base/phase2/best_miou.pt"
+  output_dir_phase2: "/home/vima/Code_final/predictions/task16b/_base"
+  batch_size:    1
+  device:        "auto"
+  rollout_steps: 0
+  max_samples:   null
+
+
+# -----------------------------------------------------------------------------
+# Weights & Biases (Cluster: installiert; vor dem Lauf WANDB_MODE=offline)
+# -----------------------------------------------------------------------------
+wandb:
+  project: "bev_worldmodel"
+  entity:  null

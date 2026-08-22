@@ -1,0 +1,18 @@
+{
+  "checkpoint": "checkpoints/task16f/residual/phase2/best_miou.pt",
+  "config": "config_residual.yaml",
+  "phase": "cell",
+  "n_samples": 5743,
+  "full_val": true,
+  "mIoU": 0.6936,
+  "per_class": {
+    "drivable_area": 0.8992,
+    "ped_crossing": 0.627,
+    "walkway": 0.7344,
+    "stop_line": 0.5484,
+    "carpark_area": 0.6915,
+    "divider": 0.6383
+  },
+  "eval_time_sec": 231.8,
+  "timestamp": "2026-07-23 14:47:50"
+}

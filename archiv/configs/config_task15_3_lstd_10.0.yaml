@@ -1,0 +1,118 @@
+# =============================================================================
+# BEV World Model — Konfiguration Task 15 (Loss-Engineering-Studie)
+# =============================================================================
+#
+# WICHTIG: Diese Config ist der einzige Steuerknopf für alle Sweep-Läufe.
+# Zwischen Läufen wird NUR diese YAML geändert — kein Code-Edit.
+#
+# Alle sechs Lambda als explizite Parameter (Task 15.1):
+#   lambda_mse  — Multi-Scale MSE              (Default 1.0)
+#   lambda_cos  — Cosine Similarity            (Default 0.1)
+#   lambda_mean — Channel-Mittelwert-Term      (Default 0.1)
+#   lambda_std  — Channel-Std-Term (Kernregler, Default 0.1)
+#   lambda_grad — Gradient/Anti-Blur-Term      (Default 0.0 = AUS)
+#   lambda_ssim — SSIM-Term                    (Default 0.1)
+#
+# Baseline-äquivalente Werte (Task 15.1 Regressionstest):
+#   lambda_mse=1.0  lambda_cos=0.1  lambda_mean=0.1
+#   lambda_std=0.1  lambda_grad=0.0 lambda_ssim=0.1
+#   → loss_total ≈ Task-13-Loss (< 1e-6 Differenz durch Float32-Reassoziation)
+#
+# Sweep-Läufe ab 15.3: NUR das jeweilige lambda ändern, Rest einfrieren.
+# =============================================================================
+
+
+# -----------------------------------------------------------------------------
+# Modell-Architektur — EINGEFROREN (kein Confounder für Loss-Studie)
+# -----------------------------------------------------------------------------
+model:
+  d_model:    256
+  n_frames:   3
+  grid_size:  32
+  n_heads:    8
+  d_ff:       1024
+  n_layers:   4
+  dropout:    0.1
+  phase:      "cell"
+
+
+# -----------------------------------------------------------------------------
+# Training — Loss-Gewichte explizit (Task 15.1)
+# Baseline-äquivalente Startwerte; ab 15.3 wird je ein lambda variiert.
+# -----------------------------------------------------------------------------
+training:
+  epochs:         50
+  batch_size:     8
+  lr:             1.0e-4
+  weight_decay:   1.0e-4
+  patience:       10
+  seed:           42
+  num_workers:    4
+  prefetch_factor: 4
+
+  # --- Loss-Gewichte (Task 15.1: alle explizit, YAML-gesteuert) ---
+  lambda_mse:   1.0    # Multi-Scale MSE (Baseline: 1.0)
+  lambda_cos:   0.1    # Cosine Similarity (Baseline: 0.1)
+  lambda_mean:  0.1    # Channel-Mean-Term (Baseline: 0.1, alt: lambda_dist/2)
+  lambda_std: 10.0    # Channel-Std-Term  (Baseline: 0.1, Kernregler 15.3)
+  lambda_grad:  0.0    # Gradient/Anti-Blur (Baseline: 0.0 = AUS, Sweep 15.4)
+  lambda_ssim:  0.1    # SSIM-Term          (Baseline: 0.1, Ablation 15.5)
+
+  log_every:      5
+
+
+# -----------------------------------------------------------------------------
+# Daten (identisch zu Task 13/14 — voller nuScenes Datensatz)
+# -----------------------------------------------------------------------------
+data:
+  mode: "explicit"
+
+  train_sources:
+    - pkl_path:   "/home/vima/Desktop/Masterarbeit/Nuscenes/complete/nuscenes_infos_train.pkl"
+      latent_dir: "/home/vima/Desktop/Masterarbeit/Nuscenes/latents/seg/train"
+
+  val_sources:
+    - pkl_path:   "/home/vima/Desktop/Masterarbeit/Nuscenes/complete/nuscenes_infos_val.pkl"
+      latent_dir: "/home/vima/Desktop/Masterarbeit/Nuscenes/latents/seg/val"
+
+
+# -----------------------------------------------------------------------------
+# Decode-Validierung (Task 14, Ebene 1) — identisch zu Task 14
+# Festes Val-Subset (n_subset=300) über alle Sweep-Läufe konstant halten.
+# -----------------------------------------------------------------------------
+decode_validation:
+  enabled:        true
+  seg_checkpoint: "/home/vima/bevfusion/bevfusion-main/pretrained/bevfusion-seg.pth"
+  decode_every:   5
+  n_subset:       300
+
+
+# -----------------------------------------------------------------------------
+# Checkpoints — pro Lauf eigenes Verzeichnis (task15_i1, task15_i2, ...)
+# Hier: Baseline-Check-Lauf (Iteration 0 / Regressionstest)
+# -----------------------------------------------------------------------------
+checkpoints:
+  dir: "/home/vima/Desktop/Masterarbeit/Code_final/checkpoints/task15/std_sweep/lstd_10.0"
+  save_every: 10
+
+
+# -----------------------------------------------------------------------------
+# Inference
+# -----------------------------------------------------------------------------
+inference:
+  pkl_path:   "/home/vima/Desktop/Masterarbeit/Nuscenes/complete/nuscenes_infos_val.pkl"
+  latent_dir: "/home/vima/Desktop/Masterarbeit/Nuscenes/latents/seg/val"
+  checkpoint_phase2: "/home/vima/Desktop/Masterarbeit/Code_final/checkpoints/task15_baseline/phase2/best_miou.pt"
+  output_dir_phase2: "/home/vima/Desktop/Masterarbeit/Code_final/predictions/task15_baseline"
+  batch_size:    1
+  device:        "auto"
+  rollout_steps: 0
+  max_samples:   null
+
+
+# -----------------------------------------------------------------------------
+# Weights & Biases
+# -----------------------------------------------------------------------------
+wandb:
+  project: "bev_worldmodel"
+  entity:  null

@@ -1,0 +1,19 @@
+{
+  "checkpoint": "checkpoints/task18/vae_0.001/phase2/best_miou.pt",
+  "config": "config_vae_0.001_eval.yaml",
+  "n_subset": 300,
+  "k": 8,
+  "is_vae": true,
+  "is_flow": false,
+  "flow_steps": null,
+  "sharpness_ratio_mean": 0.8567,
+  "sharpness_ratio_sample": 0.8564,
+  "std_ratio_mean": 0.977,
+  "std_ratio_sample": 0.9766,
+  "diversity_latent": 0.0082,
+  "diversity_mask": 0.0006,
+  "miou_mean": 0.6838,
+  "miou_sample": 0.6839,
+  "miou_best_of_k": 0.686,
+  "timestamp": "2026-07-24 19:14:38"
+}

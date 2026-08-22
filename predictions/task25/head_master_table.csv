@@ -1,0 +1,11 @@
+strang,kopf,input,metrik1,wert1,metrik2,wert2,quelle
+seg,frozen,vorhersage,mIoU_GT,0.5898,,,TASK21
+seg,frozen,real,mIoU_GT,0.6295,,,TASK21 (Orakel)
+seg,adaptiert(23),vorhersage,mIoU_GT,0.6012,,,TASK23
+seg,adaptiert(23),real,mIoU_GT,0.6293,,,TASK23
+det,frozen,vorhersage,mAP,0.3438,NDS,0.4761,TASK20
+det,frozen,real,mAP,0.6858,NDS,0.7146,TASK20 (Orakel)
+det,v1(24),vorhersage,mAP,0.4329,NDS,0.5328,TASK24
+det,v1(24),real,mAP,0.6603,NDS,0.6918,TASK24
+det,v2(25),vorhersage,mAP,0.4292,NDS,0.5333,TASK25
+det,v2(25),real,mAP,0.6710,NDS,0.7040,TASK25

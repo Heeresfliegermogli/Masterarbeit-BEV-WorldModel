@@ -1,0 +1,95 @@
+# =============================================================================
+# BEV World Model — Trainingskonfiguration
+# =============================================================================
+#
+# Verwendung:
+#   python train.py --config config.yaml --phase frame   # Phase 1
+#   python train.py --config config.yaml --phase cell    # Phase 2
+#
+# Der --phase Parameter überschreibt model.phase hier unten.
+# Alle anderen Werte können direkt in dieser Datei angepasst werden.
+# =============================================================================
+
+
+# -----------------------------------------------------------------------------
+# Modell-Architektur
+# Spiegelt ModelConfig aus code/config.py wider.
+# -----------------------------------------------------------------------------
+model:
+  d_model:    256       # Token-Dimension (= BEVFusion Channel-Zahl, nicht ändern)
+  n_frames:   3         # Anzahl Input-Frames: (t-2, t-1, t) → predict (t+1)
+  grid_size:  32        # Räumliche Auflösung nach Downsampling: 128 → AvgPool(4) → 32
+  n_heads:    8         # Attention-Heads; d_model / n_heads = 32 pro Head
+  d_ff:       1024      # FFN-Dimension (Standard: 4 × d_model)
+  n_layers:   4         # Transformer-Blöcke (Ablation: 2 oder 6)
+  dropout:    0.1       # Dropout-Rate während Training
+  phase:      "frame"   # "frame" (Phase 1, 3 Tokens) | "cell" (Phase 2, 3072 Tokens)
+                        # Wird durch --phase Argument überschrieben
+
+
+# -----------------------------------------------------------------------------
+# Training
+# -----------------------------------------------------------------------------
+training:
+  epochs:         50      # Maximale Epoch-Zahl (Early Stopping greift vorher)
+  batch_size:     16      # Phase 1: 16 | Phase 2: 4 (VRAM-Limit wegen 3072² Attention)
+  lr:             1.0e-4  # AdamW Learning Rate (Startpunkt)
+  weight_decay:   1.0e-4  # L2-Regularisierung im AdamW
+  patience:       10      # Early Stopping: nach N Epochs ohne Val-Verbesserung stoppen
+  seed:           42      # RNG-Seed für Reproduzierbarkeit (Modell + DataLoader + Split)
+  num_workers:    4       # DataLoader Worker-Prozesse (0 = kein Multiprocessing)
+  use_cosine:     true    # Cosine-Similarity-Term im Loss aktivieren
+  lambda_cos:     0.1     # Gewichtung Cosine Loss
+  lambda_dist:    0.1     # Gewichtung Channel-Statistik Loss
+                          # → Wenn val/dist in wandb → 0 sinkt:
+                          #   predicted Latents sind BEVFusion-Decoder-kompatibel
+  log_every:      5       # Alle N Epochs Visualisierungen nach wandb hochladen
+
+
+# -----------------------------------------------------------------------------
+# Daten
+# Pfade zur PKL-Datei (nuScenes Infos) und zum Latent-Verzeichnis.
+#
+# Zwei Modi (siehe bev_dataloader.py):
+#   split:    Eine PKL, wird intern aufgeteilt → für Mini/Entwicklung
+#   explicit: Getrennte PKLs für Train/Val/Test → für Full nuScenes
+# -----------------------------------------------------------------------------
+data:
+  mode:       "split"                          # "split" | "explicit"
+
+  # --- Modus: split ---
+  # sources ist eine Liste von [pkl_path, latent_dir] Paaren
+  sources:
+    - pkl_path:    "/data/nuscenes/infos_val.pkl"
+      latent_dir:  "/data/nuscenes/latents/val"
+  train_ratio:  0.70
+  val_ratio:    0.15
+  # test_ratio = 1 - train_ratio - val_ratio = 0.15 (automatisch)
+
+  # --- Modus: explicit (auskommentieren wenn verwendet) ---
+  # train_sources:
+  #   - pkl_path:   "/data/nuscenes/infos_train.pkl"
+  #     latent_dir: "/data/nuscenes/latents/train"
+  # val_sources:
+  #   - pkl_path:   "/data/nuscenes/infos_val.pkl"
+  #     latent_dir: "/data/nuscenes/latents/val"
+  # test_sources:
+  #   - pkl_path:   "/data/nuscenes/infos_test.pkl"
+  #     latent_dir: "/data/nuscenes/latents/test"
+
+
+# -----------------------------------------------------------------------------
+# Checkpoints
+# -----------------------------------------------------------------------------
+checkpoints:
+  dir:          "checkpoints"   # Basisverzeichnis; darunter: phase1/ oder phase2/
+  save_every:   10              # Periodischer Snapshot alle N Epochs (zusätzlich zum besten)
+
+
+# -----------------------------------------------------------------------------
+# Weights & Biases Logging
+# -----------------------------------------------------------------------------
+wandb:
+  project:  "bev_worldmodel"    # wandb Projektname
+  entity:   null                # wandb Team/User (null = persönlicher Account)
+  # name wird automatisch gesetzt: "phase_frame_<timestamp>" oder "phase_cell_<timestamp>"

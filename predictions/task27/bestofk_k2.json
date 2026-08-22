@@ -1,0 +1,20 @@
+{
+  "checkpoint": "checkpoints/task18/flow/phase2/best_miou.pt",
+  "config": "config_27_flow_local.yaml",
+  "n_subset": 300,
+  "k": 2,
+  "is_vae": false,
+  "is_flow": true,
+  "flow_steps": 1,
+  "flow_scale": 1.0,
+  "sharpness_ratio_mean": 0.8704,
+  "sharpness_ratio_sample": 4.319,
+  "std_ratio_mean": 0.9868,
+  "std_ratio_sample": 1.5856,
+  "diversity_latent": 1.0337,
+  "diversity_mask": 0.0087,
+  "miou_mean": 0.6896,
+  "miou_sample": 0.6466,
+  "miou_best_of_k": 0.6588,
+  "timestamp": "2026-08-13 23:08:23"
+}

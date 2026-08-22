@@ -1,0 +1,82 @@
+{
+  "summary": {
+    "n_samples": 5,
+    "mean_mse": 0.06279657408595085,
+    "std_mse": 0.004094142530514384,
+    "mean_cosine_sim": 0.7593500137329101,
+    "mean_dist_mean": 0.002003125147894025,
+    "mean_dist_std": 0.00019029397808481007,
+    "mean_dist": 0.002193419125978835,
+    "phase": "frame",
+    "checkpoint": "C:/Users/vince/Documents/World Model/Code_final/checkpoints/phase1/best_val_loss.pt",
+    "total_time_sec": 0.9,
+    "timestamp": "2026-04-28 03:21:29"
+  },
+  "records": [
+    {
+      "token": "700c1a25559b4433be532de3475e58a9",
+      "pred_path": "C:\\Users\\vince\\Documents\\World Model\\Code_final\\predictions\\phase1\\pred_700c1a25559b4433be532de3475e58a9.npy",
+      "real_path": "C:\\Users\\vince\\Documents\\World Model\\Code_final\\predictions\\phase1\\real_700c1a25559b4433be532de3475e58a9.npy",
+      "mse": 0.060117579996585846,
+      "cosine_sim": 0.784338653087616,
+      "pred_mean": 0.2091067135334015,
+      "pred_std": 0.28756630420684814,
+      "real_mean": 0.17595894634723663,
+      "real_std": 0.2876427173614502,
+      "dist_mean": 0.0013917083851993084,
+      "dist_std": 9.469345968682319e-05
+    },
+    {
+      "token": "747aa46b9a4641fe90db05d97db2acea",
+      "pred_path": "C:\\Users\\vince\\Documents\\World Model\\Code_final\\predictions\\phase1\\pred_747aa46b9a4641fe90db05d97db2acea.npy",
+      "real_path": "C:\\Users\\vince\\Documents\\World Model\\Code_final\\predictions\\phase1\\real_747aa46b9a4641fe90db05d97db2acea.npy",
+      "mse": 0.05731227621436119,
+      "cosine_sim": 0.7933380603790283,
+      "pred_mean": 0.21031147241592407,
+      "pred_std": 0.28895288705825806,
+      "real_mean": 0.17347684502601624,
+      "real_std": 0.28356948494911194,
+      "dist_mean": 0.0017570327036082745,
+      "dist_std": 0.0001502012019045651
+    },
+    {
+      "token": "f4f86af4da3b49e79497deda5c5f223a",
+      "pred_path": "C:\\Users\\vince\\Documents\\World Model\\Code_final\\predictions\\phase1\\pred_f4f86af4da3b49e79497deda5c5f223a.npy",
+      "real_path": "C:\\Users\\vince\\Documents\\World Model\\Code_final\\predictions\\phase1\\real_f4f86af4da3b49e79497deda5c5f223a.npy",
+      "mse": 0.06150709092617035,
+      "cosine_sim": 0.7689425349235535,
+      "pred_mean": 0.20782898366451263,
+      "pred_std": 0.28489744663238525,
+      "real_mean": 0.1670289933681488,
+      "real_std": 0.27838054299354553,
+      "dist_mean": 0.002128117484971881,
+      "dist_std": 0.00019824571791104972
+    },
+    {
+      "token": "6832e717621341568c759151b5974512",
+      "pred_path": "C:\\Users\\vince\\Documents\\World Model\\Code_final\\predictions\\phase1\\pred_6832e717621341568c759151b5974512.npy",
+      "real_path": "C:\\Users\\vince\\Documents\\World Model\\Code_final\\predictions\\phase1\\real_6832e717621341568c759151b5974512.npy",
+      "mse": 0.06719490885734558,
+      "cosine_sim": 0.73406982421875,
+      "pred_mean": 0.20138019323349,
+      "pred_std": 0.2797276973724365,
+      "real_mean": 0.1581185758113861,
+      "real_std": 0.2768513560295105,
+      "dist_mean": 0.002519835950806737,
+      "dist_std": 0.0001643909199628979
+    },
+    {
+      "token": "c59e60042a8643e899008da2e446acca",
+      "pred_path": "C:\\Users\\vince\\Documents\\World Model\\Code_final\\predictions\\phase1\\pred_c59e60042a8643e899008da2e446acca.npy",
+      "real_path": "C:\\Users\\vince\\Documents\\World Model\\Code_final\\predictions\\phase1\\real_c59e60042a8643e899008da2e446acca.npy",
+      "mse": 0.06785101443529129,
+      "cosine_sim": 0.716060996055603,
+      "pred_mean": 0.1924738734960556,
+      "pred_std": 0.2781899869441986,
+      "real_mean": 0.15113115310668945,
+      "real_std": 0.2691861391067505,
+      "dist_mean": 0.0022189312148839235,
+      "dist_std": 0.0003439385909587145
+    }
+  ]
+}

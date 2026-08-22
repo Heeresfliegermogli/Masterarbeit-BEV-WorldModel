@@ -1,0 +1,34 @@
+# --- grosse Artefakte (nie ins Repo) -----------------------------------------
+checkpoints/
+logs/
+wandb/
+
+# predictions/: Dumps/Latents raus, kleine Ergebnis-JSONs/CSVs REIN
+# (Datengrundlage aller scripts_render/-Figuren, ~33 MB)
+predictions/**
+!predictions/**/
+!predictions/**/*.json
+!predictions/**/*.csv
+predictions/task16a_1b_profile/trace.json
+
+# nuScenes-Latents / BEVFusion-Gewichte duerfen nicht redistribuiert werden
+*.pt
+*.pth
+*.h5
+*.npy
+*.npz
+latents*/
+dumps*/
+
+# --- Python / Editor ---------------------------------------------------------
+__pycache__/
+*.pyc
+*.pyo
+.ipynb_checkpoints/
+*.egg-info/
+
+# --- Laufzeit-Reste ----------------------------------------------------------
+*.log
+.claude/
+*.tmp
+*.swp

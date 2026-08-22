@@ -1,0 +1,64 @@
+model:
+  d_model: 256
+  n_frames: 3
+  grid_size: 45
+  n_heads: 8
+  d_ff: 1024
+  n_layers: 4
+  dropout: 0.1
+  phase: cell
+  ego_cond_mode: 'off'
+training:
+  epochs: 50
+  batch_size: 2
+  lr: 0.0001
+  weight_decay: 0.0001
+  patience: 10
+  miou_early_stop: false
+  miou_patience: 3
+  miou_min_delta: 0.014
+  seed: 42
+  num_workers: 2
+  prefetch_factor: 4
+  use_cosine: true
+  log_every: 5
+  lambda_mse: 1.0
+  lambda_cos: 0.0
+  lambda_mean: 0.0
+  lambda_std: 1.0
+  lambda_grad: 0.0
+  lambda_ssim: 0.0
+  recon_loss: smooth_l1
+  ema: false
+  ema_decay: 0.9999
+data:
+  mode: explicit
+  train_sources: &id001
+  - pkl_path: /home/vima/bevfusion_decoder/nuscenes_infos_val.pkl
+    latent_dir: /home/vima/det_latents_out/latents_val_synced
+  val_sources: *id001
+  use_packed: false
+  latent_scale: 0.3641
+  packed_dtype: float16
+  stage_to_shm: false
+  shm_cleanup: job_shared
+decode_validation:
+  enabled: false
+  seg_checkpoint: /home/vima/bevfusion-seg.pth
+  decode_every: 3
+  n_subset: 300
+checkpoints:
+  dir: /tmp/claude-1003/-home-vima-Desktop-Masterarbeit-Code-final/82361931-f309-4cf1-8ed6-44bac3e31ca6/scratchpad/task20_smoke
+  save_every: 10
+inference:
+  pkl_path: /home/vima/pkl/nuscenes_infos_val.pkl
+  latent_dir: /mnt/beegfs/ssd/lrt81-students/lrt81-vima/latents_det/val
+  checkpoint_phase2: /home/vima/Code_final/checkpoints/task16b/_base/phase2/best_miou.pt
+  output_dir_phase2: /home/vima/Code_final/predictions/task16b/_base
+  batch_size: 1
+  device: auto
+  rollout_steps: 0
+  max_samples: null
+wandb:
+  project: bev_worldmodel
+  entity: null

@@ -1,0 +1,18 @@
+{
+  "checkpoint": "checkpoints/task15/noise_floor/seed_44/phase2/best_miou.pt",
+  "config": "config_nuscenes_task15.yaml",
+  "phase": "cell",
+  "n_samples": 5743,
+  "full_val": true,
+  "mIoU": 0.6952,
+  "per_class": {
+    "drivable_area": 0.8981,
+    "ped_crossing": 0.6297,
+    "walkway": 0.7355,
+    "stop_line": 0.5477,
+    "carpark_area": 0.6863,
+    "divider": 0.6474
+  },
+  "eval_time_sec": 486.8,
+  "timestamp": "2026-07-09 03:31:37"
+}

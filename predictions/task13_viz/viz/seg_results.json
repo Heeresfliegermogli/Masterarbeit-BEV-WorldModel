@@ -1,0 +1,113 @@
+{
+  "n_samples": 10,
+  "mean_mIoU": 0.6539,
+  "per_class": {
+    "drivable_area": 0.9058,
+    "ped_crossing": 0.5015,
+    "walkway": 0.7376,
+    "stop_line": 0.4271,
+    "carpark_area": 0.76,
+    "divider": 0.6209
+  },
+  "threshold": 0.5,
+  "map_classes": [
+    "drivable_area",
+    "ped_crossing",
+    "walkway",
+    "stop_line",
+    "carpark_area",
+    "divider"
+  ],
+  "per_token": {
+    "000681a060c04755a1537cf83b53ba57": {
+      "drivable_area": 0.9854,
+      "ped_crossing": null,
+      "walkway": 0.9483,
+      "stop_line": 0.9535,
+      "carpark_area": null,
+      "divider": 0.9165,
+      "mIoU": 0.9509
+    },
+    "0017c2623c914571a1ff2a37f034ffd7": {
+      "drivable_area": 0.9567,
+      "ped_crossing": 0.5219,
+      "walkway": 0.911,
+      "stop_line": 0.4665,
+      "carpark_area": 0.7655,
+      "divider": 0.7522,
+      "mIoU": 0.729
+    },
+    "00185acff6094c4da3858d78bf462b94": {
+      "drivable_area": 0.8525,
+      "ped_crossing": 0.4261,
+      "walkway": 0.6618,
+      "stop_line": 0.2876,
+      "carpark_area": 0.6571,
+      "divider": 0.3108,
+      "mIoU": 0.5326
+    },
+    "0018da40529f48678419d44d09da5369": {
+      "drivable_area": 0.9773,
+      "ped_crossing": 0.8201,
+      "walkway": 0.9098,
+      "stop_line": 0.6782,
+      "carpark_area": 0.801,
+      "divider": 0.7439,
+      "mIoU": 0.8217
+    },
+    "0046092508b14f40a86760d11f9896bb": {
+      "drivable_area": 0.7043,
+      "ped_crossing": null,
+      "walkway": 0.2709,
+      "stop_line": 0.5,
+      "carpark_area": null,
+      "divider": 0.1429,
+      "mIoU": 0.4045
+    },
+    "005cfc5e77bc4b60a28499a1fed536c5": {
+      "drivable_area": 0.8646,
+      "ped_crossing": 0.4399,
+      "walkway": 0.7208,
+      "stop_line": 0.3492,
+      "carpark_area": 0.8505,
+      "divider": 0.7261,
+      "mIoU": 0.6585
+    },
+    "006cbdb235c64999b6f5cfbb63ec88c4": {
+      "drivable_area": 0.9439,
+      "ped_crossing": 0.8009,
+      "walkway": 0.8716,
+      "stop_line": 0.7288,
+      "carpark_area": 0.8999,
+      "divider": 0.5722,
+      "mIoU": 0.8029
+    },
+    "006d520cb38a457fb11e4bf1600a6eb2": {
+      "drivable_area": 0.9011,
+      "ped_crossing": null,
+      "walkway": 0.579,
+      "stop_line": 0.0,
+      "carpark_area": null,
+      "divider": 0.4982,
+      "mIoU": 0.4946
+    },
+    "0071536e4d774034a135085c3f08890e": {
+      "drivable_area": 0.946,
+      "ped_crossing": null,
+      "walkway": null,
+      "stop_line": 0.307,
+      "carpark_area": 0.5862,
+      "divider": 0.7484,
+      "mIoU": 0.6469
+    },
+    "0072eb21de8e4f18bbe20e7b91037b6b": {
+      "drivable_area": 0.9261,
+      "ped_crossing": 0.0,
+      "walkway": 0.7653,
+      "stop_line": 0.0,
+      "carpark_area": null,
+      "divider": 0.7974,
+      "mIoU": 0.4978
+    }
+  }
+}

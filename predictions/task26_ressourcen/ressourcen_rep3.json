@@ -1,0 +1,165 @@
+{
+  "seg_wm_minimal": {
+    "params": {
+      "total": 6054144
+    },
+    "ckpt_mb": 69.3640079498291,
+    "weights_fp32_mb": 23.0947265625,
+    "weights_fp16_mb": 11.54736328125,
+    "hardware": {
+      "gpu": "NVIDIA TITAN RTX",
+      "driver": "535.230.02",
+      "torch": "2.1.2+cu121",
+      "cuda": "12.1"
+    },
+    "precision": "fp16-autocast",
+    "t_forward_ms": {
+      "mean": 4.57960940276583,
+      "std": 0.050239255894195735,
+      "n": 300
+    },
+    "peak_vram_mb": 147.365234375,
+    "batch": 1,
+    "t_batch8_ms": {
+      "mean": 33.04999587436517,
+      "std": 0.12910209386928573,
+      "n": 300
+    },
+    "throughput_b8_fps": 242.05751886961966
+  },
+  "seg_wm_8layer": {
+    "params": {
+      "total": 9213184
+    },
+    "ckpt_mb": 105.5728702545166,
+    "weights_fp32_mb": 35.1455078125,
+    "weights_fp16_mb": 17.57275390625,
+    "hardware": {
+      "gpu": "NVIDIA TITAN RTX",
+      "driver": "535.230.02",
+      "torch": "2.1.2+cu121",
+      "cuda": "12.1"
+    },
+    "precision": "fp16-autocast",
+    "t_forward_ms": {
+      "mean": 7.490105979765455,
+      "std": 0.07078821087567648,
+      "n": 300
+    },
+    "peak_vram_mb": 165.30859375,
+    "batch": 1,
+    "t_batch8_ms": {
+      "mean": 54.75637239404023,
+      "std": 0.16742516574889527,
+      "n": 300
+    },
+    "throughput_b8_fps": 146.10171657154433
+  },
+  "det_wm_6term": {
+    "params": {
+      "total": 6057472
+    },
+    "ckpt_mb": 69.4033145904541,
+    "weights_fp32_mb": 23.107421875,
+    "weights_fp16_mb": 11.5537109375,
+    "hardware": {
+      "gpu": "NVIDIA TITAN RTX",
+      "driver": "535.230.02",
+      "torch": "2.1.2+cu121",
+      "cuda": "12.1"
+    },
+    "precision": "fp16-autocast",
+    "t_forward_ms": {
+      "mean": 11.966531394670406,
+      "std": 0.08110506530044732,
+      "n": 300
+    },
+    "peak_vram_mb": 248.9169921875,
+    "batch": 1,
+    "t_batch8_ms": {
+      "mean": 83.22339321486652,
+      "std": 0.28438491924755666,
+      "n": 300
+    },
+    "throughput_b8_fps": 96.12681832553457
+  },
+  "flow_head": {
+    "params": {
+      "total": 12572352,
+      "backbone": 6054144,
+      "kopf": 6518208
+    },
+    "ckpt_mb": 97.76030921936035,
+    "weights_fp32_mb": 47.959716796875,
+    "weights_fp16_mb": 23.9798583984375,
+    "hardware": {
+      "gpu": "NVIDIA TITAN RTX",
+      "driver": "535.230.02",
+      "torch": "2.1.2+cu121",
+      "cuda": "12.1"
+    },
+    "precision": "fp16-autocast",
+    "t_forward_ms": {
+      "mean": 4.608971600731214,
+      "std": 0.04125481626724723,
+      "n": 300
+    },
+    "t_flow_total_ms": {
+      "mean": 14.283687605833014,
+      "std": 0.06939952958631783,
+      "n": 300
+    },
+    "t_flow_step_ms": {
+      "mean": 9.6747160051018,
+      "note": "steps=1 (18/B2: identisch zu steps=10)"
+    },
+    "peak_vram_mb": 265.97509765625,
+    "batch": 1,
+    "t_batch8_ms": {
+      "mean": 33.16635411543151,
+      "std": 0.16196947056742578,
+      "n": 300
+    },
+    "throughput_b8_fps": 241.20830321466633
+  },
+  "cvae_head": {
+    "params": {
+      "total": 6424192
+    },
+    "ckpt_mb": 73.61272621154785,
+    "weights_fp32_mb": 24.50634765625,
+    "weights_fp16_mb": 12.253173828125,
+    "hardware": {
+      "gpu": "NVIDIA TITAN RTX",
+      "driver": "535.230.02",
+      "torch": "2.1.2+cu121",
+      "cuda": "12.1"
+    },
+    "precision": "fp16-autocast",
+    "t_forward_ms": {
+      "mean": 4.686738320936759,
+      "std": 0.051620088559800985,
+      "n": 300
+    },
+    "peak_vram_mb": 149.07958984375,
+    "batch": 1,
+    "t_batch8_ms": {
+      "mean": 33.408626317977905,
+      "std": 0.1499229808400531,
+      "n": 300
+    },
+    "throughput_b8_fps": 239.45911226212334
+  },
+  "persistenz": {
+    "params": {
+      "total": 0
+    },
+    "ckpt_mb": 0,
+    "t_forward_ms": {
+      "mean": 0.0,
+      "std": 0.0,
+      "n": 0
+    },
+    "note": "0 Parameter, ~0 ms (Kopie des letzten Frames)"
+  }
+}
