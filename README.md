@@ -2,9 +2,11 @@
 
 Transformer-basiertes Weltmodell, das die nächste latente BEV-Repräsentation
 (kurz: Latent) aus den drei vorherigen Frames vorhersagt. Die Latents stammen
-aus dem **eingefrorenen BEVFusion-Encoder** (nuScenes); dekodiert wird
-ebenfalls mit den eingefrorenen BEVFusion-Köpfen (Segmentierung und
-Detektion). Masterarbeit an der Universität der Bundeswehr München.
+aus den **eingefrorenen BEVFusion-Konfigurationen** für Segmentierung und
+Detektion (nuScenes), abgegriffen nach der Sensorfusion und vor den
+Wahrnehmungsköpfen. Ausgewertet werden die Vorhersagen mit den jeweils
+zugehörigen eingefrorenen Wahrnehmungsköpfen. Masterarbeit an der
+Universität der Bundeswehr München.
 
 ## Kernergebnisse
 
@@ -21,15 +23,17 @@ Detektion). Masterarbeit an der Universität der Bundeswehr München.
 - **Rollout k=1..4:** Das Weltmodell schlägt naive und ego-kompensierte
   Persistenz auf jedem Horizont; der Streuungsterm hält die Streuung über
   den Rollout kalibriert (Streuungsverhältnis 0.99–1.01).
-- **Kopfadaptation:** Nachtrainieren der eingefrorenen Wahrnehmungsköpfe
-  auf Weltmodell-Vorhersagen holt ~26–29 % des Abstands zur Referenz mit
-  realem Latent zurück (Seg +0.011 mIoU, Det +0.089 mAP) —
+- **Kopfadaptation:** Separat kopierte Wahrnehmungsköpfe werden auf
+  Weltmodell-Vorhersagen nachtrainiert und holen ~26–29 % des Abstands
+  zur Referenz mit realem Latent zurück (Seg +0.011 mIoU, Det +0.089 mAP) —
   über mehrere Seeds abgesichert.
 - **Generative Köpfe (CVAE, Flow Matching):** liefern Variation zwischen
   den Stichproben, aber keinen Genauigkeitsgewinn gegenüber dem
   deterministischen Modell.
-- **Ressourcen:** 4.4 ms Inferenz (fp16, Batch 1, TITAN RTX), <270 MB VRAM,
-  ~6M Parameter — <1–2 % eines 500-ms-Wahrnehmungszyklus.
+- **Ressourcen:** ca. 4,4 ms Inferenz für Segmentierung und 11,5 ms für
+  Detektion bei Batchgröße 1 und gemischter Präzision auf einer TITAN RTX;
+  maximal 266 MB gemessener PyTorch-Speicherbedarf des Weltmodells
+  (~6M Parameter).
 
 ## Repository-Struktur
 
@@ -69,8 +73,9 @@ BEVFusion-Gewichte** und keine trainierten Checkpoints. Zum Reproduzieren:
    Evaluation). Der Hook ist ein **externes Werkzeug aus einer
    vorangegangenen Projektarbeit** und lebt als kleiner Patch im
    BEVFusion-Repo/Docker-Container — er ist nicht Teil dieses Repos.
-   Ergebnis: je Split ein Verzeichnis einzelner `.npy`-Dateien
-   (Seg: 256×128×128, Det: 256×180×180, fp16).
+   Die vollständige Reproduktion der annotationsbasierten Evaluation
+   setzt diesen Hook voraus. Ergebnis: je Split ein Verzeichnis einzelner
+   `.npy`-Dateien (Seg: 256×128×128, Det: 256×180×180, fp16).
 4. **Packen:** `python -u Code/pack_latents.py --config <config> --split val
    --dtype float16` (idempotent; memmap-fähige Packs für den Loader).
 5. **Trainieren:** `python -u train_linux.py --config examples/config_seg_beispiel.yaml`
