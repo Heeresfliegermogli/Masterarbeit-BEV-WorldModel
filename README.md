@@ -15,25 +15,20 @@ Universität der Bundeswehr München.
 | Segmentierung (mIoU, 6 Klassen) | 0.4647 | **0.5898** | 0.6295 |
 | Detektion (mAP) | 0.1696 | **0.3438** | 0.6858 |
 
-- **Loss-Minimalismus („from six to two"):** In der Segmentierung erreicht
-  eine Zwei-Term-Zielfunktion (Smooth-L1 + Streuungsterm) die volle
-  Sechs-Term-Baseline (0.6946 vs. 0.6920 auf der Proxy-Skala); in der
-  Detektion tragen die Zusatzterme dagegen ~5 % rel. mAP — die minimale
-  Loss-Menge ist eine Eigenschaft der Zielmetrik, keine allgemeine Regel.
-- **Rollout k=1..4:** Das Weltmodell schlägt naive und ego-kompensierte
-  Persistenz auf jedem Horizont; der Streuungsterm hält die Streuung über
-  den Rollout kalibriert (Streuungsverhältnis 0.99–1.01).
-- **Kopfadaptation:** Separat kopierte Wahrnehmungsköpfe werden auf
-  Weltmodell-Vorhersagen nachtrainiert und holen ~26–29 % des Abstands
-  zur Referenz mit realem Latent zurück (Seg +0.011 mIoU, Det +0.089 mAP) —
-  über mehrere Seeds abgesichert.
-- **Generative Köpfe (CVAE, Flow Matching):** liefern Variation zwischen
-  den Stichproben, aber keinen Genauigkeitsgewinn gegenüber dem
-  deterministischen Modell.
-- **Ressourcen:** ca. 4,4 ms Inferenz für Segmentierung und 11,5 ms für
-  Detektion bei Batchgröße 1 und gemischter Präzision auf einer TITAN RTX;
-  maximal 266 MB gemessener PyTorch-Speicherbedarf des Weltmodells
-  (~6M Parameter).
+- **Zielfunktion:** Für die Segmentierung reichen Smooth-L1 und der
+  Streuungsterm aus (0.6946 gegenüber 0.6920 mit sechs Termen).
+  In der Detektion verbessern die zusätzlichen Terme dagegen die mAP.
+- **Rollout:** Das Weltmodell liegt für k=1..4 über der naiven und
+  ego-kompensierten Persistenz.
+- **Kopfadaptation:** Auf Vorhersagen nachtrainierte Wahrnehmungsköpfe
+  verbessern die Segmentierung um 0.011 mIoU und die Detektion um
+  0.089 mAP. Die Werte wurden über mehrere Trainingsläufe bestimmt.
+- **Generative Varianten:** CVAE und Flow Matching erzeugen unterschiedliche
+  Stichproben. Die Punktmetrik liegt dabei nicht über dem deterministischen
+  Modell.
+- **Laufzeit:** Ein Vorhersageschritt benötigt auf einer TITAN RTX etwa
+  4,4 ms für die Segmentierung und 11,5 ms für die Detektion.
+  Der höchste gemessene PyTorch-Speicherbedarf liegt bei 266 MB.
 
 ## Repository-Struktur
 
@@ -73,8 +68,8 @@ BEVFusion-Gewichte** und keine trainierten Checkpoints. Zum Reproduzieren:
    Evaluation). Der Hook ist ein **externes Werkzeug aus einer
    vorangegangenen Projektarbeit** und lebt als kleiner Patch im
    BEVFusion-Repo/Docker-Container — er ist nicht Teil dieses Repos.
-   Die vollständige Reproduktion der annotationsbasierten Evaluation
-   setzt diesen Hook voraus. Ergebnis: je Split ein Verzeichnis einzelner
+   Für die Evaluation gegen die nuScenes-Annotation wird dieser Hook
+   benötigt. Ergebnis: je Split ein Verzeichnis einzelner
    `.npy`-Dateien (Seg: 256×128×128, Det: 256×180×180, fp16).
 4. **Packen:** `python -u Code/pack_latents.py --config <config> --split val
    --dtype float16` (idempotent; memmap-fähige Packs für den Loader).
@@ -98,8 +93,8 @@ python3 examples/render_beispiel_klassen.py
 
 ## Dokumentation
 
-Methodik, Experimente und Ergebnisse sind vollständig in der Thesis
-dokumentiert: [`Masterarbeit_VincentMann.pdf`](Masterarbeit_VincentMann.pdf).
+Weitere Details zu Methodik und Experimenten stehen in der Masterarbeit:
+[`Masterarbeit_VincentMann.pdf`](Masterarbeit_VincentMann.pdf).
 
 ## Lizenz
 
