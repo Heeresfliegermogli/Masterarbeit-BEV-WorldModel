@@ -6,7 +6,7 @@ Packt die vorberechneten .npy-BEV-Latents eines Splits in EIN
 zusammenhaengendes Memmap-File ({packed_dir}/packed.npy). Zur Laufzeit
 liest BEVLatentDataset dann Zeile fuer Zeile aus dieser einen Datei
 statt tausender Einzel-Opens -- auf BeeGFS gemessen ~2.6x schneller
-(siehe ZWISCHENBERICHT_TASK15_CLUSTER.md).
+(auf dem Cluster-Dateisystem gemessen).
 
 KERNPRINZIP (Single Source of Truth):
     Die Schreib-Reihenfolge kommt NICHT aus einer eigenen PKL-Logik hier,

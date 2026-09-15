@@ -169,6 +169,20 @@ def load_config(config_path: str, phase_override: Optional[str] = None) -> dict:
 # BAUSTEIN 3 — Loss Funktion
 # =============================================================================
 
+# --- Optionale Zusatz-Loss-Terme (Default 0 = bit-identisch zu allen --------
+# historischen Laeufen). Modulweiter Block, in main() aus train_cfg gesetzt:
+#   lambda_sliced: sliced Verteilungs-Waechter — M Zufallsprojektionen der C
+#     Kanaele, Mittel+Streuung der Projektionen pred vs REALES Ziel gematcht
+#     (Verallgemeinerung des per-Kanal-std auf beliebige Richtungen; bewusst
+#     GEGEN die reale Verteilung, nicht gegen N(0,I)).
+#   energy_alpha: energie-gewichtete Rekonstruktion — Zellgewicht
+#     w = 1 + alpha * E_real/mean(E_real) auf TERM 1 (Zellgewichts-Pfad).
+#   lambda_peak: Peak-Erhaltung — MSE(maxpool3x3(E_pred), maxpool3x3(E_real))
+#     auf der Zell-Energie (Kanal-L2), tolerant gegen 1-Zellen-Jitter.
+EXTRA_LOSS = {"lambda_sliced": 0.0, "sliced_M": 64,
+              "energy_alpha": 0.0, "lambda_peak": 0.0}
+
+
 def compute_loss(
     pred:         torch.Tensor,   # [B, 256, 128, 128] — Modell-Output
     target:       torch.Tensor,   # [B, 256, 128, 128] — echter nächster Latent
@@ -243,6 +257,12 @@ def compute_loss(
     else:
         raise ValueError(
             f"recon_loss muss 'mse'|'l1'|'smooth_l1' sein, war '{recon_loss}'.")
+    if EXTRA_LOSS["energy_alpha"] > 0 and cell_weight is None:
+        # Energie-Gewichtung: Zellgewicht aus der REALEN Zell-Energie (on-the-fly,
+        # keine GT-Dateien noetig); Mittel-1-Normierung je Sample.
+        _E = target.norm(dim=1)                                   # [B,H,W]
+        _E = _E / _E.mean(dim=[-2, -1], keepdim=True).clamp_min(1e-8)
+        cell_weight = 1.0 + EXTRA_LOSS["energy_alpha"] * _E
     if cell_weight is None:
         # Alter Pfad — UNVERAENDERT (bit-identisch zu allen historischen Laeufen).
         loss_128 = _recon(pred, target)
@@ -323,6 +343,28 @@ def compute_loss(
         loss_ssim = torch.tensor(0.0, device=pred.device)
 
     # ------------------------------------------------------------------
+    # Optionale Terme: sliced Verteilungs-Waechter + Peak-Term (Default 0 = AUS)
+    # ------------------------------------------------------------------
+    _l_sl = EXTRA_LOSS["lambda_sliced"]
+    if _l_sl > 0:
+        _M = int(EXTRA_LOSS["sliced_M"])
+        _u = torch.randn(_M, pred.shape[1], device=pred.device, dtype=pred.dtype)
+        _u = _u / _u.norm(dim=1, keepdim=True).clamp_min(1e-8)
+        _pp = torch.einsum("mc,bchw->bmhw", _u, pred).flatten(2)    # [B,M,HW]
+        _tt = torch.einsum("mc,bchw->bmhw", _u, target).flatten(2)
+        loss_sliced = (F.mse_loss(_pp.mean(-1), _tt.mean(-1))
+                       + F.mse_loss(_pp.std(-1), _tt.std(-1)))
+    else:
+        loss_sliced = torch.tensor(0.0, device=pred.device)
+    _l_pk = EXTRA_LOSS["lambda_peak"]
+    if _l_pk > 0:
+        _Ep = F.max_pool2d(pred.norm(dim=1, keepdim=True), 3, stride=1, padding=1)
+        _Et = F.max_pool2d(target.norm(dim=1, keepdim=True), 3, stride=1, padding=1)
+        loss_peak = F.mse_loss(_Ep, _Et)
+    else:
+        loss_peak = torch.tensor(0.0, device=pred.device)
+
+    # ------------------------------------------------------------------
     # Kombination — vollständig YAML-gesteuert
     # ------------------------------------------------------------------
     loss_total = (lambda_mse  * loss_mse
@@ -330,7 +372,9 @@ def compute_loss(
                 + lambda_mean * loss_mean
                 + lambda_std  * loss_std
                 + lambda_grad * loss_grad
-                + lambda_ssim * loss_ssim)
+                + lambda_ssim * loss_ssim
+                + _l_sl       * loss_sliced
+                + _l_pk       * loss_peak)
 
     return loss_total, loss_mse, loss_cos, loss_mean, loss_std, loss_grad, loss_ssim
 
@@ -453,7 +497,7 @@ def train_one_epoch(
 
         # --- 18/B2: Flow-Matching-Zweig (ersetzt den Regressions-Loss) -------
         # Backbone frozen liefert x_det; gelernt wird nur v_theta auf dem
-        # Residuum r = target - x_det (Mathe: TASK18_METHODIK_VAE_DIFFUSION.md).
+        # Residuum r = target - x_det (siehe Thesis, Kapitel Generative Koepfe).
         if flow_active:
             with torch.cuda.amp.autocast(enabled=device.type == "cuda"):
                 with torch.no_grad():
@@ -1341,7 +1385,14 @@ def main() -> None:
     lambda_grad    = train_cfg.get("lambda_grad", 0.0)
     lambda_ssim    = train_cfg.get("lambda_ssim", 0.1)
     recon_loss     = train_cfg.get("recon_loss", "mse")   # TERM-1-Distanz
-    lambda_task    = float(train_cfg.get("lambda_task", 0.0))   # 16f: Decoder-Task-Loss
+    # Zusatzterme in den modulweiten Block (Default 0 = bit-identisch)
+    EXTRA_LOSS["lambda_sliced"] = float(train_cfg.get("lambda_sliced", 0.0))
+    EXTRA_LOSS["sliced_M"]      = int(train_cfg.get("sliced_M", 64))
+    EXTRA_LOSS["energy_alpha"]  = float(train_cfg.get("energy_alpha", 0.0))
+    EXTRA_LOSS["lambda_peak"]   = float(train_cfg.get("lambda_peak", 0.0))
+    if any(v > 0 for k, v in EXTRA_LOSS.items() if k != "sliced_M"):
+        print(f"[extra-loss] Zusatz-Loss aktiv: {EXTRA_LOSS}")
+    lambda_task    = float(train_cfg.get("lambda_task", 0.0))   # optionaler Decoder-Task-Loss
     task_every     = int(train_cfg.get("task_loss_every", 1))   # jeder n-te Batch
     if lambda_task > 0.0 and seg_decoder is None:
         raise SystemExit("[task_loss] lambda_task > 0 erfordert die Decode-Validierung "

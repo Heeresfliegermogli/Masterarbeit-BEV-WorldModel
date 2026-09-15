@@ -6,7 +6,7 @@
 # gruppiert nach gross/statisch vs. duenn/klein. Zeigt den typischen
 # Aufbau aller Thesis-Figuren: thesis_style.py (Fontkalibrierung,
 # deutsche Dezimalkommas) + kleine Ergebnis-JSONs als Datenquelle.
-# Aufruf aus dem Repo-Root: python3 examples/render_beispiel_klassen.py
+# Aufruf aus dem Repo-Root: python3 scripts_render/render_beispiel_klassen.py
 # =============================================================================
 import json
 from pathlib import Path
@@ -17,15 +17,15 @@ import matplotlib.pyplot as plt
 import matplotlib.patches as mpatches
 
 import sys as _sys
-_sys.path.insert(0, "examples")
+_sys.path.insert(0, "scripts_render")
 from thesis_style import apply_style, S, FIG, fmt
 apply_style(17.0)
 
 OFF = 0.6946      # Gesamt-mIoU der Minimal-Konfiguration (Vollvalidierung)
-OUT = Path("examples")
+OUT = Path("scripts_render")
 BLACK = "#000000"; BLUE = "#0072B2"; VERM = "#D55E00"
 
-pc = json.load(open("examples/data/seg_headline_vollvalidierung.json"))["per_class"]
+pc = json.load(open("scripts_render/beispiel_seg_headline_vollvalidierung.json"))["per_class"]
 order = [("drivable_area", "groß/statisch"), ("walkway", "groß/statisch"),
          ("carpark_area", "groß/statisch"), ("divider", "dünn/klein"),
          ("ped_crossing", "dünn/klein"), ("stop_line", "dünn/klein")]

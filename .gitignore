@@ -10,7 +10,13 @@ predictions/
 berichte/
 visualizations/
 archiv/
-scripts_render/
+# scripts_render/: lokal alles, oeffentlich nur das Render-Beispiel
+/scripts_render/*
+!/scripts_render/render_beispiel_klassen.py
+!/scripts_render/thesis_style.py
+!/scripts_render/beispiel_seg_headline_vollvalidierung.json
+!/scripts_render/beispiel_miou_je_klasse.pdf
+!/scripts_render/beispiel_miou_je_klasse.png
 /config*.yaml
 /CLAUDE.md
 /Arbeitsplan.py
@@ -36,4 +42,13 @@ __pycache__/
 .claude/
 *.tmp
 *.swp
-/configs/
+# configs/: lokal alles, oeffentlich nur die zwei Beispiel-Configs
+/configs/*
+!/configs/config_seg_beispiel.yaml
+!/configs/config_det_beispiel.yaml
+
+# lokales Master-Uebersichtsdokument (bleibt lokal)
+/UEBERSICHT.md
+
+# Ergebnis-Sammelordner (lokal)
+/ergebnisse/

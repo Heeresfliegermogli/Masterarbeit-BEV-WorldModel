@@ -45,13 +45,18 @@ training:
   prefetch_factor: 4
   use_cosine:     true
   log_every:      5
-  # Loss-Gewichte
-  lambda_mse:     1.0
-  lambda_cos:     0.1
-  lambda_mean:    0.1
+  # Loss-Gewichte — Minimal-Konfiguration der Thesis (mIoU 0,6946 auf der
+  # Vollvalidierung, Proxy-Skala): nur Rekonstruktion + Streuungsterm.
+  # Die 6-Term-Baseline (cos/mean/ssim je 0,1, recon_loss mse) liegt
+  # gleichauf (0,6920).
+  lambda_mse:     1.0     # Gewicht des Rekonstruktionsterms (TERM 1)
+  lambda_cos:     0.0
+  lambda_mean:    0.0
   lambda_std:     1.0
   lambda_grad:    0.0
-  lambda_ssim:    0.1
+  lambda_ssim:    0.0
+  # Distanzmass des Rekonstruktionsterms (mse | l1 | smooth_l1)
+  recon_loss:     smooth_l1
 
 
 # -----------------------------------------------------------------------------

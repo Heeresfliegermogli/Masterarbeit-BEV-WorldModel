@@ -1,0 +1,136 @@
+# =============================================================================
+# Beispiel-Trainingskonfiguration — Detektionsstrang (Thesis-Betriebspunkt)
+# =============================================================================
+# Weltmodell auf den Detektions-Latents (256 x 180 x 180, TransFusion-Strang).
+# Architektur identisch zum Seg-Strang; nur das Token-Gitter ist groesser
+# (180/4 = 45 -> 2025 Tokens/Frame) und die Latents werden per latent_scale
+# auf die Seg-Skala normalisiert. Loss: die 6-Term-Konfiguration der Thesis
+# (mAP 0,3438 auf der Vollvalidierung; Minimal-Konfiguration mit
+# lambda_cos = lambda_mean = lambda_ssim = 0 erreicht 0,3264).
+#
+# Die Pfade unter data/, checkpoints/ und pretrained/ sind an die eigene
+# Umgebung anzupassen (siehe README, Abschnitt "Daten & Gewichte").
+# Bewertet wird der Det-Strang nicht ueber die Decode-Validierung, sondern
+# ueber das Injektionsprotokoll: Vorhersagen auf Roh-Skala zurueckrechnen
+# (Faktor 1/0,3641) und per bevfusion_patch/ (LOAD_BEV_LATENTS) durch den
+# eingefrorenen TransFusion-Kopf auswerten.
+#
+# Nach Abgabe gemessen (nicht Teil der Thesis): Der beste Betriebspunkt
+# ist Smooth-L1 + std + Energie-Gewichtung (energy_alpha: 4) +
+# lambda_cos: 0.1 mit mAP 0,3752 (Mittel aus zwei Seeds) — siehe
+# optionale Zusatzterme in train_linux.py.
+#
+# Aufruf: python -u train_linux.py --config configs/config_det_beispiel.yaml
+# =============================================================================
+
+
+# -----------------------------------------------------------------------------
+# Modell-Architektur (identisch zum Seg-Strang bis auf das Gitter)
+# -----------------------------------------------------------------------------
+model:
+  d_model:    256
+  n_frames:   3
+  grid_size:  45        # Det-Gitter: 180/4 (Seg: 128/4 = 32)
+  n_heads:    8
+  d_ff:       1024
+  n_layers:   4
+  dropout:    0.1
+  phase:      "cell"
+
+
+# -----------------------------------------------------------------------------
+# Training — 6-Term-Loss der Thesis (Det profitiert im Gegensatz zur Seg
+# messbar von den Zusatztermen; jeder Term laesst sich mit lambda_i = 0
+# deaktivieren).
+# -----------------------------------------------------------------------------
+training:
+  epochs:         50
+  batch_size:     8
+  lr:             1.0e-4
+  weight_decay:   1.0e-4
+  patience:       10
+  # Det nutzt kein mIoU-Plateau-Stopping (keine Decode-Validierung im
+  # Training); gestoppt wird ueber die Val-Loss-Patience.
+  miou_early_stop: false
+  seed:           42
+  num_workers:    4
+  prefetch_factor: 4
+  use_cosine:     true
+  log_every:      5
+  # Loss-Gewichte (Thesis-Betriebspunkt Det)
+  lambda_mse:     1.0     # Gewicht des Rekonstruktionsterms (TERM 1)
+  lambda_cos:     0.1
+  lambda_mean:    0.1
+  lambda_std:     1.0
+  lambda_grad:    0.0
+  lambda_ssim:    0.1
+  # Distanzmass des Rekonstruktionsterms (mse | l1 | smooth_l1)
+  recon_loss:     mse
+
+
+# -----------------------------------------------------------------------------
+# Daten (nuScenes trainval, offizieller Split) — fp16-Memmap-Packs.
+# latent_scale normalisiert die Det-Latents auf die Seg-Skala
+# (gemessene Kanalstreuung Det/Seg ~ 2,75) — haelt die Smooth-L1-/std-
+# Arbeitspunkte beider Straenge vergleichbar. Die Auswertekette rechnet
+# mit 1/0,3641 zurueck.
+# -----------------------------------------------------------------------------
+data:
+  mode: "explicit"
+
+  train_sources:
+    - pkl_path:   "data/nuscenes/nuscenes_infos_train.pkl"
+      latent_dir: "data/latents/det/train"
+
+  val_sources:
+    - pkl_path:   "data/nuscenes/nuscenes_infos_val.pkl"
+      latent_dir: "data/latents/det/val"
+
+  use_packed:   true
+  packed_dtype: float16
+  latent_scale: 0.3641
+  train_packed_dir: "data/latents_packed_fp16/det/train"
+  val_packed_dir:   "data/latents_packed_fp16/det/val"
+
+
+# -----------------------------------------------------------------------------
+# Decode-Validierung — fuer den Det-Strang deaktiviert (der Seg-Decoder
+# passt nicht auf das 45er-Gitter; Bewertung siehe Kopfkommentar).
+# -----------------------------------------------------------------------------
+decode_validation:
+  enabled:        false
+  seg_checkpoint: "pretrained/bevfusion-seg.pth"
+  decode_every:   3
+  n_subset:       300
+
+
+# -----------------------------------------------------------------------------
+# Checkpoints
+# -----------------------------------------------------------------------------
+checkpoints:
+  dir:        "checkpoints/det_basis"
+  save_every: 10
+
+
+# -----------------------------------------------------------------------------
+# Inference — Achtung: inference.py ist auf den Seg-Strang ausgelegt
+# (32er-Gitter). Fuer Det die Vorhersagen ueber das Injektionsprotokoll
+# auswerten (bevfusion_patch/, LOAD_BEV_LATENTS).
+# -----------------------------------------------------------------------------
+inference:
+  pkl_path:   "data/nuscenes/nuscenes_infos_val.pkl"
+  latent_dir: "data/latents/det/val"
+  checkpoint_phase2: "checkpoints/det_basis/phase2/best_val_loss.pt"
+  output_dir_phase2: "predictions/det_basis"
+  batch_size:    1
+  device:        "auto"
+  rollout_steps: 0
+  max_samples:   null
+
+
+# -----------------------------------------------------------------------------
+# Weights & Biases (optional)
+# -----------------------------------------------------------------------------
+wandb:
+  project: "bev_worldmodel"
+  entity:  null
