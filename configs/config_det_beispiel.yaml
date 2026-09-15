@@ -4,9 +4,14 @@
 # Weltmodell auf den Detektions-Latents (256 x 180 x 180, TransFusion-Strang).
 # Architektur identisch zum Seg-Strang; nur das Token-Gitter ist groesser
 # (180/4 = 45 -> 2025 Tokens/Frame) und die Latents werden per latent_scale
-# auf die Seg-Skala normalisiert. Loss: die 6-Term-Konfiguration der Thesis
-# (mAP 0,3438 auf der Vollvalidierung; Minimal-Konfiguration mit
-# lambda_cos = lambda_mean = lambda_ssim = 0 erreicht 0,3264).
+# auf die Seg-Skala normalisiert.
+#
+# Loss: der beste gemessene Betriebspunkt (nach Abgabe systematisch
+# bestimmt, Mittel aus zwei Seeds): Smooth-L1 + Streuungsterm +
+# Energie-Gewichtung (energy_alpha) + cos -> mAP 0,3752 auf der
+# Vollvalidierung. Zum Vergleich: 6-Term-Konfiguration der Thesis
+# 0,3438 (mse-Rueckgrat, cos/mean/ssim je 0,1), Minimal-Konfiguration
+# 0,3264. Begruendung der Terme: siehe README, Abschnitt Zielfunktion.
 #
 # Die Pfade unter data/, checkpoints/ und pretrained/ sind an die eigene
 # Umgebung anzupassen (siehe README, Abschnitt "Daten & Gewichte").
@@ -14,11 +19,6 @@
 # ueber das Injektionsprotokoll: Vorhersagen auf Roh-Skala zurueckrechnen
 # (Faktor 1/0,3641) und per bevfusion_patch/ (LOAD_BEV_LATENTS) durch den
 # eingefrorenen TransFusion-Kopf auswerten.
-#
-# Nach Abgabe gemessen (nicht Teil der Thesis): Der beste Betriebspunkt
-# ist Smooth-L1 + std + Energie-Gewichtung (energy_alpha: 4) +
-# lambda_cos: 0.1 mit mAP 0,3752 (Mittel aus zwei Seeds) — siehe
-# optionale Zusatzterme in train_linux.py.
 #
 # Aufruf: python -u train_linux.py --config configs/config_det_beispiel.yaml
 # =============================================================================
@@ -39,9 +39,10 @@ model:
 
 
 # -----------------------------------------------------------------------------
-# Training — 6-Term-Loss der Thesis (Det profitiert im Gegensatz zur Seg
-# messbar von den Zusatztermen; jeder Term laesst sich mit lambda_i = 0
-# deaktivieren).
+# Training — bester Betriebspunkt: Smooth-L1 (Struktur) + std (Streuungs-
+# Waechter) + Energie-Gewichtung (starke Objektzellen) + cos (Kanal-
+# Richtung). Jeder Term laesst sich mit lambda_i = 0 / alpha = 0
+# deaktivieren.
 # -----------------------------------------------------------------------------
 training:
   epochs:         50
@@ -57,15 +58,21 @@ training:
   prefetch_factor: 4
   use_cosine:     true
   log_every:      5
-  # Loss-Gewichte (Thesis-Betriebspunkt Det)
+  # Loss-Gewichte (bester Betriebspunkt, mAP 0,3752)
   lambda_mse:     1.0     # Gewicht des Rekonstruktionsterms (TERM 1)
-  lambda_cos:     0.1
-  lambda_mean:    0.1
-  lambda_std:     1.0
+  lambda_cos:     0.1     # Richtungs-Term: staerkster Einzelhebel des Det-Strangs
+  lambda_mean:    0.0
+  lambda_std:     1.0     # Streuungs-Waechter (Verteilungs-Kalibrierung)
   lambda_grad:    0.0
-  lambda_ssim:    0.1
+  lambda_ssim:    0.0     # schadet in beiden Straengen signifikant
+  # Energie-Gewichtung: Zellgewicht w = 1 + alpha*E_real/mean(E_real)
+  # auf dem Rekonstruktionsterm — wertet die wenigen starken
+  # Objektzellen auf (Fussgaenger-Befund)
+  energy_alpha:   4.0
   # Distanzmass des Rekonstruktionsterms (mse | l1 | smooth_l1)
-  recon_loss:     mse
+  recon_loss:     smooth_l1
+  # Thesis-Stand als Alternative: recon_loss mse, cos/mean/ssim je 0.1,
+  # energy_alpha 0 -> mAP 0,3438
 
 
 # -----------------------------------------------------------------------------

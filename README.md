@@ -30,6 +30,59 @@ Universität der Bundeswehr München.
   4,4 ms für die Segmentierung und 11,5 ms für die Detektion.
   Der höchste gemessene PyTorch-Speicherbedarf liegt bei 266 MB.
 
+## Zielfunktion: Was trägt — und warum
+
+Die Loss-Ablationen wurden nach Abgabe der Arbeit auf einheitlichem
+Protokoll vervollständigt (Vollvalidierung, ein Trainingsrezept, nur der
+jeweils genannte Term geändert). Kurzfassung:
+
+**Segmentierung — zwei Terme genügen.** Kein Zusatzterm verbessert die
+Minimal-Konfiguration (grau = Seed-Band ±0,014), ssim schadet sogar
+signifikant. Smooth-L1 trägt die gesamte Vorhersageleistung: Ohne ihn
+fällt das Modell aufs Persistenz-Niveau zurück (−0,16 mIoU), weil das
+Gate dann nur noch kopiert.
+
+![Seg-Ablationen](img/loss_ablation_seg.png)
+
+**Warum der Streuungsterm trotzdem dazugehört.** Für die Punktmetrik ist
+er fast neutral (−0,0039) — sein Wert zeigt sich im autoregressiven
+Rollout: Ohne ihn kollabiert die Streuungs-Kalibrierung monoton
+(−23,5 % über vier Schritte, Regression zur Mitte kompoundiert), mit ihm
+bleibt sie bei 1,0. Arbeitsteilung der zwei Terme: **Smooth-L1 = Struktur,
+Streuungsterm = Verteilungswächter.** Ein mean-Term oder ein sliced
+Verteilungs-Matching können ihn nicht ersetzen (Kurven im Bild).
+
+![Rollout-Wächter](img/rollout_waechter_seg.png)
+
+**Detektion — hier zahlen sich gezielte Terme aus.** Anders als die
+Segmentierung (wahrnehmungslimitiert, 90/10) reagiert der Det-Strang
+messbar auf die Zielfunktion: Der cos-Term (Richtung des Kanalvektors ≈
+„was steht hier") und die Energie-Gewichtung (wertet die wenigen
+starken Objektzellen auf, die ein gemittelter Loss übersieht) heben die
+mAP jeweils signifikant — kombiniert ergeben sie den besten
+Betriebspunkt des Projekts: **Smooth-L1 + std + energy(α=4) + cos(0,1),
+mAP 0,3752** (Mittel aus zwei Seeds; `configs/config_det_beispiel.yaml`).
+ssim schadet in beiden Strängen.
+
+![Det-Ablationen](img/loss_ablation_det.png)
+
+Auch bei der Detektion wirkt der Streuungs-Wächter nur auf die
+Statistik, nicht auf die Punktmetrik — dieselbe Rollenteilung wie im
+Seg-Rollout:
+
+![Det-Wächter](img/waechter_det.png)
+
+**Wo noch Luft ist:** bewegungsbasierte Zellgewichte (Change-Masken)
+sind für Det ungetestet; ein vollständiges Verteilungs-Matching
+kalibrierte schlechter als das billige per-Kanal-std, Varianten bleiben
+offen; längere Rollout-Horizonte (k > 4) und Training mit mitlernendem
+Kopf sind die naheliegenden nächsten Schritte.
+
+Herleitung der Terme, Messprotokolle und alle Thesis-Ergebnisse:
+[`Masterarbeit_VincentMann.pdf`](Masterarbeit_VincentMann.pdf), Kap. 3.4
+und 5.2 (die hier gezeigten Ein-Basis-Ablationen ergänzen die Arbeit
+nachträglich).
+
 ## Repository-Struktur
 
 ```
