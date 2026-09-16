@@ -19,8 +19,8 @@ Universität der Bundeswehr München.
   Streuungsterm aus. In der Detektion verbessern gezielte Zusatzterme
   die mAP. Details stehen im Abschnitt "Zielfunktion" am Ende dieses
   Dokuments.
-- Rollout: Das Weltmodell liegt für k=1..4 über der naiven und der
-  ego-kompensierten Persistenz.
+- Rollout: Das Weltmodell liegt bei jedem Schritt bis k=10 über der
+  Persistenz.
 - Kopfadaptation: Auf Vorhersagen nachtrainierte Wahrnehmungsköpfe
   verbessern die Segmentierung um 0,011 mIoU und die Detektion um
   0,089 mAP. Die Werte wurden über mehrere Trainingsläufe bestimmt.
@@ -133,14 +133,14 @@ Persistenz-Niveau zurück, weil das Gate dann nur noch kopiert.
 
 Der Streuungsterm gehört trotzdem dazu. Für die Punktmetrik ist er
 nahezu neutral, sein Wert zeigt sich im autoregressiven Rollout. Ohne
-ihn kollabiert die Streuungs-Kalibrierung von Schritt zu Schritt
-(Regression zur Mitte), mit ihm bleibt das Streuungsverhältnis bei 1,0.
-Die Abbildung zeigt die mIoU über den Rollout: Der Wächter kostet dabei
-nichts, alle Varianten liegen in der Punktmetrik gleichauf. Ein
-mean-Term oder ein sliced Verteilungs-Matching kalibrieren schlechter
-als das einfache per-Kanal-std. Die Arbeitsteilung lautet also:
-Smooth-L1 liefert die Struktur, der Streuungsterm sichert die
-Verteilung.
+ihn fällt das Streuungsverhältnis durch Regression zur Mitte auf ein
+Plateau um 0,77, mit ihm bleibt es über den gesamten Horizont nahe 1,0.
+Ein mean-Term wirkt dabei nicht als Wächter, seine Kurve liegt auf dem
+Niveau ohne Wächter. Die Abbildung zeigt die mIoU über zehn
+Rollout-Schritte: Der Wächter kostet nichts, alle Varianten liegen in
+der Punktmetrik gleichauf, und das Modell bleibt bei jedem Schritt über
+der Persistenz. Die Arbeitsteilung lautet also: Smooth-L1 liefert die
+Struktur, der Streuungsterm sichert die Verteilung.
 
 ![Rollout-Wächter](img/rollout_waechter_seg.png)
 
