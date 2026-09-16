@@ -136,10 +136,11 @@ Werteverteilung über zufällige 1D-Projektionen an). Die
 6-Term-Konfiguration ist die in der Thesis verwendete Kombination.
 
 Segmentierung: Kein Zusatzterm verbessert die Minimal-Konfiguration,
-ssim verschlechtert die mIoU über das Seed-Band hinaus. Ohne Smooth-L1
-fällt die mIoU ungefähr auf das Niveau der Persistenz. In diesem Fall
-wird das Gate überwiegend in Richtung der letzten beobachteten
-Repräsentation verschoben.
+ssim verschlechtert die mIoU über das Seed-Band hinaus. Smooth-L1
+bestimmt die Gesamtstruktur der Vorhersage. Ohne diesen Term fällt die
+mIoU ungefähr auf das Niveau der Persistenz. In diesem Fall wird das
+Gate überwiegend in Richtung der letzten beobachteten Repräsentation
+verschoben.
 
 ![Seg-Ablationen](img/loss_ablation_seg.png)
 
@@ -147,8 +148,11 @@ Der Streuungsterm verändert die mIoU kaum, wirkt sich aber im
 autoregressiven Rollout auf die Statistik der Vorhersagen aus. Ohne
 diesen Term fällt das Streuungsverhältnis auf etwa 0,77. Mit
 Streuungsterm bleibt es über den untersuchten Horizont nahe 1,0. Der
-Mittelwert-Term zeigt diesen Effekt nicht, das sliced
-Verteilungs-Matching kalibriert etwas schlechter. In der mIoU liegen
+Mittelwert-Term zeigt diesen Effekt nicht: Die Mittelwerte der Latents
+sind über die Frames nahezu konstant, der Term liefert daher kaum
+zusätzliche Information. Die Standardabweichung je Kanal bildet
+dagegen die Aktivierungsstärke ab. Das sliced Verteilungs-Matching
+kalibriert etwas schlechter. In der mIoU liegen
 alle vier Varianten innerhalb des Seed-Bands (Abbildung); das Modell
 bleibt bei jedem Schritt über der Persistenz.
 
@@ -160,15 +164,19 @@ Ergebnisse in den durchgeführten Läufen deutlich über den Rauschboden
 hinaus. Die beste getestete Konfiguration kombiniert Smooth-L1,
 Streuungsterm, Energiegewichtung (Faktor 4) und Kosinusterm (Gewicht
 0,1) und erreicht 0,3752 mAP im Mittel über zwei Seeds
-(`configs/config_det_beispiel.yaml`). ssim und der Peak-Term
-verschlechtern die mAP.
+(`configs/config_det_beispiel.yaml`).
 
 ![Det-Ablationen](img/loss_ablation_det.png)
 
-Auch bei der Detektion verändert der Streuungsterm nur die Statistik
-der Vorhersagen, nicht die mAP:
-
-![Det Streuungsverhältnis](img/waechter_det.png)
+Die Ergebnisse ergeben ein konsistentes Bild: In den Det-Latents
+tragen wenige Zellen mit hoher Aktivierung die Objektinformation.
+Terme, die diese Zellen stärker gewichten, verbessern die mAP: die
+Energiegewichtung direkt, MSE über die stärkere Bestrafung großer
+Abweichungen, der Kosinusterm über den Erhalt der Kanalrichtung je
+Zelle. Terme, die lokale Statistiken glätten (ssim) oder nur die
+Maxima angleichen (Peak), verschlechtern sie. Der Streuungsterm
+verändert wie bei der Segmentierung nur die Statistik der Vorhersagen,
+nicht die mAP.
 
 Offene Punkte: Bewegungsbasierte Zellgewichte sind für die Detektion
 ungetestet, längere Rollout-Horizonte und Training mit mitlernendem
