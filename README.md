@@ -119,11 +119,11 @@ python3 scripts_render/render_beispiel_klassen.py
 
 ## Ablation der Zielfunktion
 
-Die folgenden Ablationen wurden nach Abgabe der Masterarbeit mit einem
-einheitlichen Versuchsprotokoll ergänzt (Vollvalidierung, ein
-Trainingsrezept, je Lauf nur der genannte Term geändert). Referenz ist
-in beiden Grafiken die Minimal-Konfiguration aus Smooth-L1 und
-Streuungsterm.
+Die folgenden Ablationen wurden teilweise nach Abgabe der Masterarbeit
+durchgeführt. Sie ergänzen die behandelten Punkte und erweitern die
+Ergebnisse. Diese basieren auf einer Vollvalidierung, bei der jeweils
+nur ein genannter Term verändert wurde. Referenz ist in beiden
+Grafiken die Minimal-Konfiguration aus Smooth-L1 und Streuungsterm.
 
 Verwendete Terme: Smooth-L1 (elementweiser Rekonstruktionsfehler),
 std (gleicht die Standardabweichung je Kanal an das reale Latent an),
