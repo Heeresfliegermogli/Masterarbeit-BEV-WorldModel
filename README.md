@@ -16,17 +16,17 @@ Universität der Bundeswehr München.
 | Detektion (mAP) | 0,1696 | **0,3438** | 0,6858 |
 
 - Zielfunktion: Für die Segmentierung reichen Smooth-L1 und der
-  Streuungsterm aus. In der Detektion verbessern gezielte Zusatzterme
-  die mAP. Details stehen im Abschnitt "Zielfunktion" am Ende dieses
-  Dokuments.
+  Streuungsterm aus. In der Detektion verbessern Zusatzterme die mAP.
+  Details stehen im Abschnitt "Ablation der Zielfunktion" am Ende
+  dieses Dokuments.
 - Rollout: Das Weltmodell liegt bei jedem Schritt bis k=10 über der
   Persistenz.
 - Kopfadaptation: Auf Vorhersagen nachtrainierte Wahrnehmungsköpfe
   verbessern die Segmentierung um 0,011 mIoU und die Detektion um
-  0,089 mAP. Die Werte wurden über mehrere Trainingsläufe bestimmt.
-- Generative Varianten: CVAE und Flow Matching erzeugen unterschiedliche
-  Stichproben. Die Punktmetrik liegt dabei nicht über dem
-  deterministischen Modell.
+  0,089 mAP.
+- Generative Varianten: CVAE und Flow Matching erzeugen
+  unterschiedliche Stichproben, erreichen in mIoU bzw. mAP aber keine
+  besseren Werte als das deterministische Modell.
 - Laufzeit: Ein Vorhersageschritt benötigt auf einer TITAN RTX etwa
   4,4 ms für die Segmentierung und 11,5 ms für die Detektion.
   Der höchste gemessene PyTorch-Speicherbedarf liegt bei 266 MB.
@@ -117,58 +117,65 @@ Beispiel von Abbildung 5.8 (mIoU je Klasse):
 python3 scripts_render/render_beispiel_klassen.py
 ```
 
-## Zielfunktion: Welche Terme tragen
+## Ablation der Zielfunktion
 
-Die Loss-Ablationen wurden nach Abgabe der Arbeit auf einheitlichem
-Protokoll vervollständigt (Vollvalidierung, ein Trainingsrezept, nur der
-jeweils genannte Term geändert). Referenz ist in beiden Grafiken die
-Minimal-Konfiguration aus Smooth-L1 und Streuungsterm.
+Die folgenden Ablationen wurden nach Abgabe der Masterarbeit mit einem
+einheitlichen Versuchsprotokoll ergänzt (Vollvalidierung, ein
+Trainingsrezept, je Lauf nur der genannte Term geändert). Referenz ist
+in beiden Grafiken die Minimal-Konfiguration aus Smooth-L1 und
+Streuungsterm.
 
-Segmentierung: Zwei Terme genügen. Kein Zusatzterm verbessert die
-Minimal-Konfiguration, ssim schadet sogar signifikant. Smooth-L1 trägt
-die gesamte Vorhersageleistung. Ohne ihn fällt das Modell auf das
-Persistenz-Niveau zurück, weil das Gate dann nur noch kopiert.
+Verwendete Terme: Smooth-L1 (elementweiser Rekonstruktionsfehler),
+std (gleicht die Standardabweichung je Kanal an das reale Latent an),
+mean (Gegenstück für den Mittelwert), cos (Kosinus-Ähnlichkeit der
+Kanalvektoren je Zelle), grad (Fehler auf Differenzen benachbarter
+Zellen), ssim (strukturelle Ähnlichkeit), energy (gewichtet Zellen mit
+hoher Aktivierungsenergie des realen Latents stärker), Peak (gleicht
+lokale Energiemaxima nach Max-Pooling an), sliced (gleicht die
+Werteverteilung über zufällige 1D-Projektionen an). Die
+6-Term-Konfiguration ist die in der Thesis verwendete Kombination.
+
+Segmentierung: Kein Zusatzterm verbessert die Minimal-Konfiguration,
+ssim verschlechtert die mIoU über das Seed-Band hinaus. Ohne Smooth-L1
+fällt die mIoU ungefähr auf das Niveau der Persistenz. In diesem Fall
+wird das Gate überwiegend in Richtung der letzten beobachteten
+Repräsentation verschoben.
 
 ![Seg-Ablationen](img/loss_ablation_seg.png)
 
-Der Streuungsterm gehört trotzdem dazu. Für die Punktmetrik ist er
-nahezu neutral, sein Wert zeigt sich im autoregressiven Rollout. Ohne
-ihn fällt das Streuungsverhältnis durch Regression zur Mitte auf ein
-Plateau um 0,77, mit ihm bleibt es über den gesamten Horizont nahe 1,0.
-Ein mean-Term wirkt dabei nicht als Wächter, seine Kurve liegt auf dem
-Niveau ohne Wächter. Die Abbildung zeigt die mIoU über zehn
-Rollout-Schritte: Der Wächter kostet nichts, alle Varianten liegen in
-der Punktmetrik gleichauf, und das Modell bleibt bei jedem Schritt über
-der Persistenz. Die Arbeitsteilung lautet also: Smooth-L1 liefert die
-Struktur, der Streuungsterm sichert die Verteilung.
+Der Streuungsterm verändert die mIoU kaum, wirkt sich aber im
+autoregressiven Rollout auf die Statistik der Vorhersagen aus. Ohne
+diesen Term fällt das Streuungsverhältnis auf etwa 0,77. Mit
+Streuungsterm bleibt es über den untersuchten Horizont nahe 1,0. Der
+Mittelwert-Term zeigt diesen Effekt nicht, das sliced
+Verteilungs-Matching kalibriert etwas schlechter. In der mIoU liegen
+alle vier Varianten innerhalb des Seed-Bands (Abbildung); das Modell
+bleibt bei jedem Schritt über der Persistenz.
 
-![Rollout-Wächter](img/rollout_waechter_seg.png)
+![Rollout Segmentierung](img/rollout_waechter_seg.png)
 
-Detektion: Hier zahlen sich gezielte Terme aus. Anders als die
-wahrnehmungslimitierte Segmentierung reagiert der Det-Strang messbar
-auf die Zielfunktion. Der cos-Term erhält die Richtung des
-Kanalvektors je Zelle, die Energie-Gewichtung wertet die wenigen
-starken Objektzellen auf, die ein gemittelter Loss übersieht. Beide
-heben die mAP signifikant und ergeben kombiniert den besten
-Betriebspunkt des Projekts: Smooth-L1 + std + energy(4) + cos(0,1)
-mit mAP 0,3752 (Mittel aus zwei Seeds, siehe
-`configs/config_det_beispiel.yaml`). ssim schadet in beiden Strängen.
+Bei der Detektion beeinflusst die Wahl der Zielfunktion die mAP
+stärker. Der Kosinusterm und die Energiegewichtung verbessern die
+Ergebnisse in den durchgeführten Läufen deutlich über den Rauschboden
+hinaus. Die beste getestete Konfiguration kombiniert Smooth-L1,
+Streuungsterm, Energiegewichtung (Faktor 4) und Kosinusterm (Gewicht
+0,1) und erreicht 0,3752 mAP im Mittel über zwei Seeds
+(`configs/config_det_beispiel.yaml`). ssim und der Peak-Term
+verschlechtern die mAP.
 
 ![Det-Ablationen](img/loss_ablation_det.png)
 
-Auch bei der Detektion wirkt der Streuungsterm nur auf die Statistik,
-nicht auf die Punktmetrik. Es gilt dieselbe Rollenteilung wie im
-Seg-Rollout:
+Auch bei der Detektion verändert der Streuungsterm nur die Statistik
+der Vorhersagen, nicht die mAP:
 
-![Det-Wächter](img/waechter_det.png)
+![Det Streuungsverhältnis](img/waechter_det.png)
 
 Offene Punkte: Bewegungsbasierte Zellgewichte sind für die Detektion
 ungetestet, längere Rollout-Horizonte und Training mit mitlernendem
-Kopf sind die naheliegenden nächsten Schritte. Herleitung der Terme,
-Messprotokolle und alle Thesis-Ergebnisse stehen in
+Kopf wären die nächsten Schritte. Herleitung der Terme, Messprotokolle
+und alle Thesis-Ergebnisse stehen in
 [`Masterarbeit_VincentMann.pdf`](Masterarbeit_VincentMann.pdf),
-Kapitel 3.4 und 5.2. Die hier gezeigten Ablationen auf einer Basis
-ergänzen die Arbeit nachträglich.
+Kapitel 3.4 und 5.2.
 
 ## Dokumentation
 
