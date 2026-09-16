@@ -178,9 +178,11 @@ Maxima angleichen (Peak), verschlechtern sie. Der Streuungsterm
 verändert wie bei der Segmentierung nur die Statistik der Vorhersagen,
 nicht die mAP.
 
-Offene Punkte: Bewegungsbasierte Zellgewichte sind für die Detektion
-ungetestet, längere Rollout-Horizonte und Training mit mitlernendem
-Kopf wären die nächsten Schritte. Herleitung der Terme, Messprotokolle
+Offene Punkte: Die adaptierten Köpfe wurden auf einer früheren
+Det-Konfiguration trainiert und nicht auf die beste Konfiguration
+(energy + cos) nachgezogen. Bewegungsbasierte Zellgewichte sind für
+die Detektion ungetestet, längere Rollout-Horizonte und Training mit
+mitlernendem Kopf wären die nächsten Schritte. Herleitung der Terme, Messprotokolle
 und alle Thesis-Ergebnisse stehen in
 [`Masterarbeit_VincentMann.pdf`](Masterarbeit_VincentMann.pdf),
 Kapitel 3.4 und 5.2.
