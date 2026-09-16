@@ -1,5 +1,6 @@
 # =============================================================================
-# Beispiel-Trainingskonfiguration — Detektionsstrang (Thesis-Betriebspunkt)
+# >>> BESTER BETRIEBSPUNKT DET: Smooth-L1 + std + energy(4) + cos(0,1), mAP 0,3752 <<<
+# Beispiel-Trainingskonfiguration — Detektionsstrang
 # =============================================================================
 # Weltmodell auf den Detektions-Latents (256 x 180 x 180, TransFusion-Strang).
 # Architektur identisch zum Seg-Strang; nur das Token-Gitter ist groesser
